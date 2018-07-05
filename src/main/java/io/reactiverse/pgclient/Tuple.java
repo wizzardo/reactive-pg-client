@@ -17,12 +17,12 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.shared.Buffer;
 import io.reactiverse.pgclient.impl.ArrayTuple;
 import io.reactiverse.pgclient.data.Point;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.buffer.Buffer;
 
 import java.math.BigDecimal;
 import java.time.*;

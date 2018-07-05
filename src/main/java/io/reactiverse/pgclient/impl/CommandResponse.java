@@ -1,8 +1,8 @@
 package io.reactiverse.pgclient.impl;
 
+import io.reactiverse.pgclient.shared.AsyncResult;
 import io.reactiverse.pgclient.impl.codec.TxStatus;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.impl.NoStackTraceThrowable;
+import io.reactiverse.pgclient.shared.misc.NoStackTraceThrowable;
 
 public abstract class CommandResponse<R> implements AsyncResult<R> {
 

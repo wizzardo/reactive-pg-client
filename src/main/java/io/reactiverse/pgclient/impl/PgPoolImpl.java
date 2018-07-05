@@ -18,7 +18,12 @@
 package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.*;
-import io.vertx.core.*;
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Future;
+import io.reactiverse.pgclient.shared.Handler;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxException;
 
 /**
  * Todo :
@@ -46,7 +51,7 @@ public class PgPoolImpl extends PgClientBase<PgPoolImpl> implements PgPool {
     }
     this.context = vertx.getOrCreateContext();
     this.factory = new PgConnectionFactory(context, Vertx.currentContext() != null, options);
-    this.pool = new ConnectionPool(factory::connect, maxSize);
+    this.pool = new ConnectionPool(completionHandler -> factory.connect(completionHandler::handle), maxSize);
     this.closeVertx = closeVertx;
   }
 

@@ -104,7 +104,7 @@ public class PgConnectionFactory {
           pipeliningLimit,
           ssl,
           ctx);
-        conn.initiateProtocolOrSsl(username, password, database, completionHandler);
+        conn.initiateProtocolOrSsl(username, password, database, completionHandler::handle);
       } else {
         completionHandler.handle(CommandResponse.failure(ar.cause()));
       }

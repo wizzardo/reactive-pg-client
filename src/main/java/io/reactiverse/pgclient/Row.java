@@ -17,9 +17,9 @@
 package io.reactiverse.pgclient;
 
 import io.reactiverse.pgclient.data.Point;
+import io.reactiverse.pgclient.shared.Buffer;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.buffer.Buffer;
 
 import java.math.BigDecimal;
 import java.time.*;

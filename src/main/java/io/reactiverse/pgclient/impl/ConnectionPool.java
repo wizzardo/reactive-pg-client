@@ -17,7 +17,10 @@
 
 package io.reactiverse.pgclient.impl;
 
-import io.vertx.core.*;
+
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Future;
+import io.reactiverse.pgclient.shared.Handler;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

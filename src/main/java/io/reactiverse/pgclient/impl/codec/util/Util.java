@@ -18,7 +18,7 @@
 package io.reactiverse.pgclient.impl.codec.util;
 
 import io.netty.buffer.ByteBuf;
-import io.vertx.core.buffer.Buffer;
+import io.reactiverse.pgclient.shared.Buffer;
 
 import java.nio.charset.Charset;
 import java.util.stream.Collectors;

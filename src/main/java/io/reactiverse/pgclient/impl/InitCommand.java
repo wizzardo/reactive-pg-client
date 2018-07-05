@@ -23,7 +23,7 @@ import io.reactiverse.pgclient.impl.codec.decoder.ErrorResponse;
 import io.reactiverse.pgclient.impl.codec.encoder.MessageEncoder;
 import io.reactiverse.pgclient.impl.codec.encoder.PasswordMessage;
 import io.reactiverse.pgclient.impl.codec.encoder.StartupMessage;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 
 /**
  * Initialize the connection so it can be used to interact with the database.

@@ -18,7 +18,7 @@
 package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.impl.codec.encoder.MessageEncoder;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>

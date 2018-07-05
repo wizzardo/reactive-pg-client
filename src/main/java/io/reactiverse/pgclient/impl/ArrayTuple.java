@@ -21,7 +21,7 @@ import io.reactiverse.pgclient.Json;
 import io.reactiverse.pgclient.Numeric;
 import io.reactiverse.pgclient.Tuple;
 import io.reactiverse.pgclient.data.Point;
-import io.vertx.core.buffer.Buffer;
+import io.reactiverse.pgclient.shared.Buffer;
 
 import java.math.BigDecimal;
 import java.time.*;

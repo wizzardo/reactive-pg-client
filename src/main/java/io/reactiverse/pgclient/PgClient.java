@@ -17,6 +17,9 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Future;
+import io.reactiverse.pgclient.shared.Handler;
 import io.reactiverse.pgclient.impl.Connection;
 import io.reactiverse.pgclient.impl.PgConnectionFactory;
 import io.reactiverse.pgclient.impl.PgConnectionImpl;
@@ -24,7 +27,9 @@ import io.reactiverse.pgclient.impl.PgPoolImpl;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.*;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 
 import java.util.List;
 import java.util.stream.Collector;

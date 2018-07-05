@@ -22,11 +22,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.reactiverse.pgclient.Json;
 import io.reactiverse.pgclient.Numeric;
+import io.reactiverse.pgclient.shared.Buffer;
 import io.reactiverse.pgclient.impl.codec.formatter.DateTimeFormatter;
 import io.reactiverse.pgclient.impl.codec.formatter.TimeFormatter;
 import io.reactiverse.pgclient.impl.codec.util.UTF8StringEndDetector;
 import io.reactiverse.pgclient.data.Point;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 

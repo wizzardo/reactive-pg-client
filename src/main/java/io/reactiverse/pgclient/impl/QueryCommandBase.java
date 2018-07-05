@@ -19,10 +19,10 @@ package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.PgException;
 import io.reactiverse.pgclient.Row;
+import io.reactiverse.pgclient.shared.AsyncResult;
 import io.reactiverse.pgclient.impl.codec.decoder.ErrorResponse;
 import io.reactiverse.pgclient.impl.codec.decoder.RowDescription;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 
 import java.util.stream.Collector;
 

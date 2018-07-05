@@ -17,10 +17,11 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.*;
 
 import java.util.List;
 import java.util.stream.Collector;

@@ -17,9 +17,9 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.shared.ReadStream;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.core.streams.ReadStream;
+import io.reactiverse.pgclient.shared.Handler;
 
 @VertxGen
 public interface PgStream<T> extends ReadStream<T> {

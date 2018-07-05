@@ -23,7 +23,7 @@ import io.reactiverse.pgclient.impl.codec.decoder.NoticeResponse;
 import io.reactiverse.pgclient.impl.codec.decoder.ParameterDescription;
 import io.reactiverse.pgclient.impl.codec.decoder.RowDescription;
 import io.reactiverse.pgclient.impl.codec.encoder.MessageEncoder;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>

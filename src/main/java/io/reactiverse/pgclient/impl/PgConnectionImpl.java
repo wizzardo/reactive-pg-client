@@ -18,7 +18,11 @@
 package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.*;
-import io.vertx.core.*;
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Future;
+import io.reactiverse.pgclient.shared.Handler;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -46,7 +50,7 @@ public class PgConnectionImpl extends PgClientBase<PgConnectionImpl> implements 
   public void handleClosed() {
     Handler<Void> handler = closeHandler;
     if (handler != null) {
-      context.runOnContext(handler);
+      context.runOnContext(handler::handle);
     }
   }
 
@@ -106,7 +110,7 @@ public class PgConnectionImpl extends PgClientBase<PgConnectionImpl> implements 
     if (tx != null) {
       throw new IllegalStateException();
     }
-    tx = new Transaction(context, conn, v -> {
+    tx = new Transaction(h -> context.runOnContext(h::handle), conn, v -> {
       tx = null;
     });
     return tx;

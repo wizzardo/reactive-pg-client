@@ -25,7 +25,7 @@ import io.reactiverse.pgclient.impl.codec.decoder.RowDescription;
 import io.reactiverse.pgclient.impl.codec.encoder.MessageEncoder;
 import io.reactiverse.pgclient.impl.codec.encoder.Describe;
 import io.reactiverse.pgclient.impl.codec.encoder.Parse;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 
 public class PrepareStatementCommand extends CommandBase<PreparedStatement> {
 

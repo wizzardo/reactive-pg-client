@@ -18,11 +18,11 @@ package io.reactiverse.pgclient.pubsub;
 
 import io.reactiverse.pgclient.PgConnectOptions;
 import io.reactiverse.pgclient.PgConnection;
+import io.reactiverse.pgclient.shared.AsyncResult;
 import io.reactiverse.pgclient.impl.pubsub.PgSubscriberImpl;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 import io.vertx.core.Vertx;
 
 import java.util.function.Function;

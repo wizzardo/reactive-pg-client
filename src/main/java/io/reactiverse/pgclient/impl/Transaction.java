@@ -17,12 +17,12 @@
 package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.*;
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Context;
+import io.reactiverse.pgclient.shared.Future;
 import io.reactiverse.pgclient.impl.codec.TxStatus;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.impl.NoStackTraceThrowable;
+import io.reactiverse.pgclient.shared.Handler;
+import io.reactiverse.pgclient.shared.misc.NoStackTraceThrowable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

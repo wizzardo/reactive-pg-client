@@ -16,10 +16,10 @@
  */
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.shared.AsyncResult;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 
 /**
  * A transaction that allows to control the transaction and receive events.

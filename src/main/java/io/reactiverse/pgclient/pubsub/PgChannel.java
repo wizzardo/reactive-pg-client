@@ -16,10 +16,10 @@
  */
 package io.reactiverse.pgclient.pubsub;
 
+import io.reactiverse.pgclient.shared.ReadStream;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.core.streams.ReadStream;
+import io.reactiverse.pgclient.shared.Handler;
 
 /**
  * A channel to Postgres that tracks the subscription to a given Postgres channel using the {@code LISTEN/UNLISTEN} commands.

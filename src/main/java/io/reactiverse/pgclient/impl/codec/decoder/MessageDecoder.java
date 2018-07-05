@@ -34,7 +34,7 @@ import io.netty.util.ByteProcessor;
 import io.reactiverse.pgclient.impl.codec.decoder.type.AuthenticationType;
 import io.reactiverse.pgclient.impl.codec.decoder.type.ErrorOrNoticeType;
 import io.reactiverse.pgclient.impl.codec.decoder.type.MessageType;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.Handler;
 
 import java.util.Deque;
 

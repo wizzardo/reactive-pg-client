@@ -23,7 +23,11 @@ import io.reactiverse.pgclient.impl.codec.encoder.MessageEncoder;
 import io.reactiverse.pgclient.impl.codec.decoder.NotificationResponse;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.DecoderException;
-import io.vertx.core.*;
+import io.reactiverse.pgclient.shared.Future;
+import io.reactiverse.pgclient.shared.Handler;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxException;
 import io.vertx.core.impl.NetSocketInternal;
 
 import java.util.*;
