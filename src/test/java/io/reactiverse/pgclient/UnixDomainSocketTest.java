@@ -16,6 +16,8 @@
  */
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.ext.unit.Async;
@@ -30,7 +32,7 @@ import static org.junit.Assume.assumeNotNull;
 @RunWith(VertxUnitRunner.class)
 public class UnixDomainSocketTest {
 
-  private static PgConnectOptions options;
+  private static VertxPgConnectOptions options;
   private PgPool client;
 
   @BeforeClass
@@ -64,15 +66,15 @@ public class UnixDomainSocketTest {
   public void uriTest(TestContext context) {
     assumeNotNull(options);
     String uri = "postgresql://postgres:postgres@/postgres?host=" + options.getHost() + "&port=" + options.getPort();
-    client = PgClient.pool(uri);
-    client.getConnection(context.asyncAssertSuccess(pgConnection -> pgConnection.close()));
+    client = VertxPgClientFactory.pool(uri);
+    client.getConnection(AsyncResultVertxConverter.from(context.asyncAssertSuccess(pgConnection -> pgConnection.close())));
   }
 
   @Test
   public void simpleConnect(TestContext context) {
     assumeNotNull(options);
-    client = PgClient.pool(new PgPoolOptions(options));
-    client.getConnection(context.asyncAssertSuccess(pgConnection -> pgConnection.close()));
+    client = VertxPgClientFactory.pool(new VertxPgPoolOptions(options));
+    client.getConnection(AsyncResultVertxConverter.from(context.asyncAssertSuccess(pgConnection -> pgConnection.close())));
   }
 
   @Test
@@ -80,12 +82,12 @@ public class UnixDomainSocketTest {
     assumeNotNull(options);
     Vertx vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(true));
     try {
-      client = PgClient.pool(vertx, new PgPoolOptions(options));
+      client = VertxPgClientFactory.pool(vertx, new VertxPgPoolOptions(options));
       Async async = context.async();
-      client.getConnection(context.asyncAssertSuccess(pgConnection -> {
+      client.getConnection(AsyncResultVertxConverter.from(context.asyncAssertSuccess(pgConnection -> {
         async.complete();
         pgConnection.close();
-      }));
+      })));
       async.await();
     } finally {
       vertx.close();

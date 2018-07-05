@@ -18,8 +18,8 @@
 package io.reactiverse.pgclient.pool;
 
 import io.reactiverse.pgclient.impl.Connection;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Handler;
 
 class SimpleHolder implements Connection.Holder, Handler<AsyncResult<Connection>> {
 

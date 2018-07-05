@@ -4,11 +4,11 @@ import io.netty.buffer.ByteBuf;
 
 public interface Buffer {
 
-    static Buffer buffer(byte[] decodeHexStringToBytes) {
+    static Buffer buffer(byte[] bytes) {
         throw new IllegalStateException("Not implemented yet");
     }
 
-    static Buffer buffer(ByteBuf readBytes) {
+    static Buffer buffer(ByteBuf buf) {
         throw new IllegalStateException("Not implemented yet");
     }
 

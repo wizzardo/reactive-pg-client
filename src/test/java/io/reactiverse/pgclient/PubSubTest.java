@@ -16,8 +16,10 @@
  */
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
 import io.reactiverse.pgclient.pubsub.PgSubscriber;
 import io.reactiverse.pgclient.pubsub.PgChannel;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -52,17 +54,17 @@ public class PubSubTest extends PgTestBase {
   @Test
   public void testNotify(TestContext ctx) {
     Async async = ctx.async(2);
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
-      conn.query("LISTEN the_channel", ctx.asyncAssertSuccess(result1 -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("LISTEN the_channel", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result1 -> {
         conn.notificationHandler(notification -> {
           ctx.assertEquals("the_channel", notification.getChannel());
           ctx.assertEquals("the message", notification.getPayload());
           async.countDown();
         });
-        conn.query("NOTIFY the_channel, 'the message'", ctx.asyncAssertSuccess(result2 -> {
+        conn.query("NOTIFY the_channel, 'the message'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result2 -> {
           async.countDown();
-        }));
-      }));
+        })));
+      })));
     }));
   }
 
@@ -81,10 +83,10 @@ public class PubSubTest extends PgTestBase {
       notifiedLatch.countDown();
     });
     Async connectLatch = ctx.async();
-    subscriber.connect(ctx.asyncAssertSuccess(v -> connectLatch.complete()));
+    subscriber.connect(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> connectLatch.complete())));
     connectLatch.awaitSuccess(10000);
-    subscriber.actualConnection().query("NOTIFY channel1, 'msg1'", ctx.asyncAssertSuccess());
-    subscriber.actualConnection().query("NOTIFY channel2, 'msg2'", ctx.asyncAssertSuccess());
+    subscriber.actualConnection().query("NOTIFY channel1, 'msg1'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess()));
+    subscriber.actualConnection().query("NOTIFY channel2, 'msg2'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess()));
     notifiedLatch.awaitSuccess(10000);
   }
 
@@ -92,7 +94,7 @@ public class PubSubTest extends PgTestBase {
   public void testSubscribe(TestContext ctx) {
     subscriber = PgSubscriber.subscriber(vertx, options);
     Async connectLatch = ctx.async();
-    subscriber.connect(ctx.asyncAssertSuccess(v -> connectLatch.complete()));
+    subscriber.connect(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> connectLatch.complete())));
     connectLatch.awaitSuccess(10000);
     PgChannel channel = subscriber.channel("the_channel");
     Async subscribedLatch = ctx.async();
@@ -103,7 +105,7 @@ public class PubSubTest extends PgTestBase {
       notifiedLatch.countDown();
     });
     subscribedLatch.awaitSuccess(10000);
-    subscriber.actualConnection().query("NOTIFY the_channel, 'msg'", ctx.asyncAssertSuccess());
+    subscriber.actualConnection().query("NOTIFY the_channel, 'msg'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess()));
     notifiedLatch.awaitSuccess(10000);
   }
 
@@ -111,7 +113,7 @@ public class PubSubTest extends PgTestBase {
   public void testUnsubscribe(TestContext ctx) {
     subscriber = PgSubscriber.subscriber(vertx, options);
     Async connectLatch = ctx.async();
-    subscriber.connect(ctx.asyncAssertSuccess(v -> connectLatch.complete()));
+    subscriber.connect(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> connectLatch.complete())));
     connectLatch.awaitSuccess(10000);
     PgChannel sub = subscriber.channel("the_channel");
     Async endLatch = ctx.async();
@@ -136,7 +138,7 @@ public class PubSubTest extends PgTestBase {
   }
 
   public void testReconnect(TestContext ctx, long delay) {
-    PgConnectOptions options = new PgConnectOptions(PgTestBase.options);
+    VertxPgConnectOptions options = new VertxPgConnectOptions(PgTestBase.options);
     ProxyServer proxy = ProxyServer.create(vertx, options.getPort(), options.getHost());
     AtomicReference<ProxyServer.Connection> connRef = new AtomicReference<>();
     proxy.proxyHandler(conn -> {
@@ -202,7 +204,7 @@ public class PubSubTest extends PgTestBase {
     sub.handler(notif -> {
     });
     Async connectLatch = ctx.async();
-    subscriber.connect(ctx.asyncAssertSuccess(v -> connectLatch.complete()));
+    subscriber.connect(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> connectLatch.complete())));
     connectLatch.awaitSuccess(10000);
     Async closeLatch = ctx.async();
     subscriber.closeHandler(v -> closeLatch.complete());

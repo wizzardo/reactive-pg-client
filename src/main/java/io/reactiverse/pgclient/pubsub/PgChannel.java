@@ -26,7 +26,7 @@ import io.reactiverse.pgclient.shared.Handler;
  * <p/>
  * When paused the channel discards the messages.
  */
-@VertxGen
+//@VertxGen
 public interface PgChannel extends ReadStream<String> {
 
   /**

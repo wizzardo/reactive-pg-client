@@ -17,7 +17,7 @@
 
 package io.reactiverse.pgclient.impl;
 
-import io.reactiverse.pgclient.PgConnectOptions;
+import io.reactiverse.pgclient.VertxPgConnectOptions;
 import io.vertx.core.*;
 import io.vertx.core.impl.NetSocketInternal;
 import io.vertx.core.net.NetClient;
@@ -27,7 +27,7 @@ import io.vertx.core.net.SocketAddress;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class PgConnectionFactory {
+public class VertxPgConnectionFactory {
 
   private final NetClient client;
   private final Context ctx;
@@ -43,9 +43,9 @@ public class PgConnectionFactory {
   private final boolean isUsingDomainSocket;
   private final Closeable hook;
 
-  public PgConnectionFactory(Context context,
-                             boolean registerCloseHook,
-                             PgConnectOptions options) {
+  public VertxPgConnectionFactory(Context context,
+                                  boolean registerCloseHook,
+                                  VertxPgConnectOptions options) {
 
     hook = this::close;
     this.registerCloseHook = registerCloseHook;

@@ -32,7 +32,7 @@ import java.util.UUID;
 /**
  * A general purpose tuple.
  */
-@VertxGen
+//@VertxGen
 public interface Tuple {
 
   /**

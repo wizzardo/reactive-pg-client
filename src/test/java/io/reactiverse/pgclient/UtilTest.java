@@ -45,7 +45,7 @@ public class UtilTest {
 
   private static void assertWriteHexString(String expected, byte... data) {
     ByteBuf buff = Unpooled.buffer();
-    Util.writeHexString(Buffer.buffer().appendBytes(data), buff);
+    Util.writeHexString(io.reactiverse.pgclient.shared.Buffer.buffer(data), buff);
     String hex = buff.toString(StandardCharsets.UTF_8);
     assertEquals(expected, hex);
   }

@@ -1,6 +1,8 @@
 package io.reactiverse.pgclient;
 
 import io.reactiverse.pgclient.data.Point;
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -24,17 +26,17 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
 
   @Override
   protected PgConnectOptions options() {
-    return new PgConnectOptions(options).setCachePreparedStatements(false);
+    return new VertxPgConnectOptions(options).setCachePreparedStatements(false);
   }
 
   @Test
   public void testDecodeBoolean(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Boolean\" FROM \"NumericDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -43,21 +45,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getBoolean, Row::getBoolean, true)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeBoolean(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"NumericDataType\" SET \"Boolean\" = $1  WHERE \"id\" = $2 RETURNING \"Boolean\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addBoolean(Boolean.FALSE)
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               Row row = result.iterator().next();
@@ -66,18 +68,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getBoolean, Row::getBoolean, false)
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeInt2(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Short\" FROM \"NumericDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.of(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.of(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -92,18 +94,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getNumeric, Row::getNumeric, Numeric.create(32767))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeInt2(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"NumericDataType\" SET \"Short\" = $1 WHERE \"id\" = $2 RETURNING \"Short\"",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.of(Short.MIN_VALUE, 2), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.of(Short.MIN_VALUE, 2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -118,18 +120,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getNumeric, Row::getNumeric, Numeric.create(-32768))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeInt4(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Integer\" FROM \"NumericDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -144,21 +146,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getNumeric, Row::getNumeric, Numeric.create(2147483647))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeInt4(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"NumericDataType\" SET \"Integer\" = $1 WHERE \"id\" = $2 RETURNING \"Integer\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addInteger(Integer.MIN_VALUE)
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               Row row = result.iterator().next();
@@ -173,18 +175,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getNumeric, Row::getNumeric, Numeric.create(-2147483648))
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeInt8(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Long\" FROM \"NumericDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -199,21 +201,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getNumeric, Row::getNumeric, Numeric.create(Long.MAX_VALUE))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeInt8(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"NumericDataType\" SET \"Long\" = $1 WHERE \"id\" = $2 RETURNING \"Long\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addLong(Long.MIN_VALUE)
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               Row row = result.iterator().next();
@@ -228,18 +230,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getNumeric, Row::getNumeric, Numeric.create(Long.MIN_VALUE))
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeFloat4(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Float\" FROM \"NumericDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -254,21 +256,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getNumeric, Row::getNumeric, Numeric.parse("" + Float.MAX_VALUE))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeFloat4(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"NumericDataType\" SET \"Float\" = $1 WHERE \"id\" = $2 RETURNING \"Float\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addFloat(Float.MIN_VALUE)
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               Row row = result.iterator().next();
@@ -283,18 +285,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getNumeric, Row::getNumeric, Numeric.parse("" + Float.MIN_VALUE))
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeFloat8(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Double\" FROM \"NumericDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -309,21 +311,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getNumeric, Row::getNumeric, Numeric.parse("" + Double.MAX_VALUE))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeFloat8(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"NumericDataType\" SET \"Double\" = $1 WHERE \"id\" = $2 RETURNING \"Double\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addDouble(Double.MIN_VALUE)
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               Row row = result.iterator().next();
@@ -338,18 +340,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getNumeric, Row::getNumeric, Numeric.parse("" + Double.MIN_VALUE))
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeDateBeforePgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Date\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             LocalDate ld = LocalDate.parse("1981-05-30");
@@ -360,21 +362,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ld)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeDateBeforePgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"TemporalDataType\" SET \"Date\" = $1 WHERE \"id\" = $2 RETURNING \"Date\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           LocalDate ld = LocalDate.parse("1981-06-30");
           p.execute(Tuple.tuple()
             .addLocalDate(ld)
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -384,18 +386,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ld)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeDateAfterPgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Date\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(2), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             LocalDate ld = LocalDate.parse("2017-05-30");
@@ -406,22 +408,22 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ld)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeDateAfterPgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"TemporalDataType\" SET \"Date\" = $1 WHERE \"id\" = $2 RETURNING \"Date\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           LocalDate ld = LocalDate.parse("2018-05-30");
           p.execute(Tuple.tuple()
               .addLocalDate(ld)
               .addInteger(4)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               Row row = result.iterator().next();
@@ -431,18 +433,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getTemporal, Row::getTemporal, ld)
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeTime(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Time\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             LocalTime lt = LocalTime.parse("17:55:04.905120");
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
@@ -453,8 +455,8 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, lt)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
@@ -462,14 +464,14 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testEncodeTime(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE  \"TemporalDataType\" SET \"Time\" = $1 WHERE \"id\" = $2 RETURNING \"Time\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           LocalTime lt = LocalTime.parse("22:55:04.905120");
           p.execute(Tuple.tuple()
               .addLocalTime(lt)
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               Row row = result.iterator().next();
@@ -479,18 +481,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getTemporal, Row::getTemporal, lt)
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeTimeTz(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"TimeTz\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -501,21 +503,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ot)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeTimeTz(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"TemporalDataType\" SET \"TimeTz\" = $1 WHERE \"id\" = $2 RETURNING \"TimeTz\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           OffsetTime ot = OffsetTime.parse("20:55:04.905120+03:07");
           p.execute(Tuple.tuple()
             .addOffsetTime(ot)
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -525,18 +527,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ot)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeTimestampBeforePgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Timestamp\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(3), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+            p.execute(Tuple.tuple().addInteger(3), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -547,21 +549,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ldt)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeTimestampBeforePgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"TemporalDataType\" SET \"Timestamp\" = $1 WHERE \"id\" = $2 RETURNING \"Timestamp\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           LocalDateTime ldt = LocalDateTime.parse("1900-02-01T23:57:53.237666");
           p.execute(Tuple.tuple()
             .addLocalDateTime(ldt)
-            .addInteger(4), ctx.asyncAssertSuccess(result -> {
+            .addInteger(4), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -571,8 +573,8 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ldt)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
@@ -581,10 +583,10 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeTimestampAfterPgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Timestamp\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -594,21 +596,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getTemporal, Row::getTemporal, ldt)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeTimestampAfterPgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"TemporalDataType\" SET \"Timestamp\" =$1 WHERE \"id\" = $2 RETURNING \"Timestamp\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addLocalDateTime(LocalDateTime.parse("2017-05-14T19:35:58.237666"))
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               LocalDateTime ldt = LocalDateTime.parse("2017-05-14T19:35:58.237666");
               Row row = result.iterator().next();
@@ -618,19 +620,19 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getTemporal, Row::getTemporal, ldt)
                 .forRow(row);
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeTimestampTzBeforePgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
-      conn.query("SET TIME ZONE 'UTC'", ctx.asyncAssertSuccess(v -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SET TIME ZONE 'UTC'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
         conn.prepare("SELECT \"TimestampTz\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-          ctx.asyncAssertSuccess(p -> {
-            p.execute(Tuple.tuple().addInteger(3), ctx.asyncAssertSuccess(result -> {
+            AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+            p.execute(Tuple.tuple().addInteger(3), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               OffsetDateTime odt = OffsetDateTime.parse("1800-01-02T02:59:59.237666Z");
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
@@ -641,23 +643,23 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getTemporal, Row::getTemporal, odt)
                 .forRow(row);
               async.complete();
-            }));
-          }));
-      }));
+            })));
+          })));
+      })));
     }));
   }
 
   @Test
   public void testEncodeTimestampTzBeforePgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
-      conn.query("SET TIME ZONE 'UTC'", ctx.asyncAssertSuccess(v -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SET TIME ZONE 'UTC'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
         conn.prepare("UPDATE \"TemporalDataType\" SET \"TimestampTz\" =$1 WHERE \"id\" = $2 RETURNING \"TimestampTz\"",
-          ctx.asyncAssertSuccess(p -> {
+          AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
             p.execute(Tuple.tuple()
                 .addOffsetDateTime(OffsetDateTime.parse("1800-02-01T23:59:59.237666-03:00"))
                 .addInteger(3)
-              , ctx.asyncAssertSuccess(result -> {
+              , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
                 OffsetDateTime odt = OffsetDateTime.parse("1800-02-02T02:59:59.237666Z");
                 ctx.assertEquals(1, result.updatedCount());
                 ctx.assertEquals(1, result.size());
@@ -668,20 +670,20 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                   .returns(Tuple::getTemporal, Row::getTemporal, odt)
                   .forRow(row);
                 async.complete();
-              }));
-          }));
-      }));
+              })));
+          })));
+      })));
     }));
   }
 
   @Test
   public void testDecodeTimestampTzAfterPgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
-      conn.query("SET TIME ZONE 'UTC'", ctx.asyncAssertSuccess(v -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SET TIME ZONE 'UTC'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
         conn.prepare("SELECT \"TimestampTz\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
-          ctx.asyncAssertSuccess(p -> {
-            p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+          AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+            p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ctx.assertEquals(1, result.size());
               ctx.assertEquals(1, result.updatedCount());
               OffsetDateTime odt = OffsetDateTime.parse("2017-05-15T02:59:59.237666Z");
@@ -692,23 +694,23 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                 .returns(Tuple::getTemporal, Row::getTemporal, odt)
                 .forRow(row);
               async.complete();
-            }));
-          }));
-      }));
+            })));
+          })));
+      })));
     }));
   }
 
   @Test
   public void testEncodeTimestampTzAfterPgEpoch(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
-      conn.query("SET TIME ZONE 'UTC'", ctx.asyncAssertSuccess(v -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SET TIME ZONE 'UTC'", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
         conn.prepare("UPDATE \"TemporalDataType\" SET \"TimestampTz\" = $1 WHERE \"id\" = $2 RETURNING \"TimestampTz\"",
-          ctx.asyncAssertSuccess(p -> {
+          AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
             p.execute(Tuple.tuple()
                 .addOffsetDateTime(OffsetDateTime.parse("2017-06-14T23:59:59.237666-03:00"))
                 .addInteger(1)
-              , ctx.asyncAssertSuccess(result -> {
+              , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
                 ctx.assertEquals(1, result.size());
                 ctx.assertEquals(1, result.updatedCount());
                 OffsetDateTime odt = OffsetDateTime.parse("2017-06-15T02:59:59.237666Z");
@@ -719,9 +721,9 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
                   .returns(Tuple::getTemporal, Row::getTemporal, odt)
                   .forRow(row);
                 async.complete();
-              }));
-          }));
-      }));
+              })));
+          })));
+      })));
     }));
   }
 
@@ -730,10 +732,10 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeUUID(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"uuid\" FROM \"CharacterDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -742,21 +744,21 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getUUID, Row::getUUID, uuid)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeUUID(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"CharacterDataType\" SET \"uuid\" = $1 WHERE \"id\" = $2 RETURNING \"uuid\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           UUID uuid = UUID.fromString("92b53cf1-2ad0-49f9-be9d-ca48966e43ee");
           p.execute(Tuple.tuple()
             .addUUID(uuid)
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -765,8 +767,8 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getUUID, Row::getUUID, uuid)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
@@ -898,10 +900,10 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
 
   private <T> void testGeneric(TestContext ctx, String sql, T[] expected, BiFunction<Row, Integer, T> getter) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       List<Tuple> batch = Stream.of(expected).map(Tuple::of).collect(Collectors.toList());
       conn.preparedBatch(sql, batch,
-        ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
           for (T n : expected) {
             ctx.assertEquals(result.size(), 1);
             Iterator<Row> it = result.iterator();
@@ -912,7 +914,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
           }
           ctx.assertNull(result);
           async.complete();
-        }));
+        })));
     }));
   }
 
@@ -928,10 +930,10 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
 
   private void testDecodeJson(TestContext ctx, String tableName) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"JsonObject\", \"JsonArray\", \"Number\", \"String\", \"BooleanTrue\", \"BooleanFalse\", \"Null\" FROM \"" + tableName + "\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -966,8 +968,8 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getJson, Row::getJson, Json.create(null))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
@@ -983,7 +985,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
 
   private void testEncodeJson(TestContext ctx, String tableName) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"" + tableName + "\" SET " +
           "\"JsonObject\" = $1, " +
           "\"JsonArray\" = $2, " +
@@ -993,7 +995,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
           "\"BooleanFalse\" = $6, " +
           "\"Null\" = $7 " +
           "WHERE \"id\" = $8 RETURNING \"JsonObject\", \"JsonArray\", \"Number\", \"String\", \"BooleanTrue\", \"BooleanFalse\", \"Null\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           JsonObject object = new JsonObject("{\"str\":\"blah\", \"int\" : 1, \"float\" : 3.5, \"object\": {}, \"array\" : []}");
           JsonArray array = new JsonArray("[1,true,null,9.5,\"Hi\"]");
           p.execute(Tuple.tuple()
@@ -1004,7 +1006,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
             .addJson(Json.create(true))
             .addJson(Json.create(false))
             .addJson(Json.create(null))
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1037,18 +1039,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getJson, Row::getJson, Json.create(null))
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeName(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Name\" FROM \"CharacterDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1058,20 +1060,20 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeName(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"CharacterDataType\" SET \"Name\" = upper($1) WHERE \"id\" = $2 RETURNING \"Name\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
             .addString("vert.x")
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1081,8 +1083,8 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
@@ -1090,10 +1092,10 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeChar(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"SingleChar\" FROM \"CharacterDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1103,20 +1105,20 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, singleChar)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeChar(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"CharacterDataType\" SET \"SingleChar\" = upper($1) WHERE \"id\" = $2 RETURNING \"SingleChar\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
             .addString("b")
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1126,18 +1128,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, singleChar)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeFixedChar(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"FixedChar\" FROM \"CharacterDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1147,20 +1149,20 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeFixedChar(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"CharacterDataType\" SET \"FixedChar\" = upper($1) WHERE \"id\" = $2 RETURNING \"FixedChar\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
             .addString("no")
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1170,18 +1172,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeText(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Text\" FROM \"CharacterDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1191,20 +1193,20 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeText(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"CharacterDataType\" SET \"Text\" = upper($1) WHERE \"id\" = $2 RETURNING \"Text\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
             .addString("Hello World")
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1214,18 +1216,18 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeVarCharacter(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"VarCharacter\" FROM \"CharacterDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.tuple().addInteger(1), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.tuple().addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1235,20 +1237,20 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeVarCharacter(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"CharacterDataType\" SET \"VarCharacter\" = upper($1) WHERE \"id\" = $2 RETURNING \"VarCharacter\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
             .addString("Great!")
-            .addInteger(2), ctx.asyncAssertSuccess(result -> {
+            .addInteger(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1, result.updatedCount());
             Row row = result.iterator().next();
@@ -1258,8 +1260,8 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getString, Row::getString, name)
               .forRow(row);
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
@@ -1272,14 +1274,14 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
     }
     String value = builder.toString();
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT $1::VARCHAR(" + len + ")",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.of(value), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.of(value), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(value, result.iterator().next().getString(0));
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
@@ -1290,343 +1292,343 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
     byte[] bytes = new byte[len];
     r.nextBytes(bytes);
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT $1::BYTEA \"Bytea\"",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.of(Buffer.buffer(bytes)), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.of(Buffer.buffer(bytes)), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Bytea")
               .returns(Tuple::getValue, Row::getValue, Buffer.buffer(bytes))
               .returns(Tuple::getBuffer, Row::getBuffer, Buffer.buffer(bytes))
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeBooleanArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Boolean\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Boolean")
               .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new boolean[]{Boolean.TRUE}))
               .returns(Tuple::getBooleanArray, Row::getBooleanArray, ColumnChecker.toObjectArray(new boolean[]{Boolean.TRUE}))
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeBooleanArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Boolean\" = $1  WHERE \"id\" = $2 RETURNING \"Boolean\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addBooleanArray(new Boolean[]{Boolean.FALSE, Boolean.TRUE})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Boolean")
                 .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new boolean[]{Boolean.FALSE, Boolean.TRUE}))
                 .returns(Tuple::getBooleanArray, Row::getBooleanArray, ColumnChecker.toObjectArray(new boolean[]{Boolean.FALSE, Boolean.TRUE}))
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeShortArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Short\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Short")
               .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new short[]{1}))
               .returns(Tuple::getShortArray, Row::getShortArray, ColumnChecker.toObjectArray(new short[]{1}))
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeShortArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Short\" = $1  WHERE \"id\" = $2 RETURNING \"Short\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addShortArray(new Short[]{2,3,4})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Short")
                 .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new short[]{2,3,4}))
                 .returns(Tuple::getShortArray, Row::getShortArray, ColumnChecker.toObjectArray(new short[]{2,3,4}))
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeIntArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Integer\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Integer")
               .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new int[]{2}))
               .returns(Tuple::getIntegerArray, Row::getIntegerArray, ColumnChecker.toObjectArray(new int[]{2}))
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeIntArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Integer\" = $1  WHERE \"id\" = $2 RETURNING \"Integer\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addIntegerArray(new Integer[]{3,4,5,6})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Integer")
                 .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new int[]{3,4,5,6}))
                 .returns(Tuple::getIntegerArray, Row::getIntegerArray, ColumnChecker.toObjectArray(new int[]{3,4,5,6}))
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeLongArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Long\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Long")
               .returns(Tuple::getValue, Row::getValue, new Long[]{3L})
               .returns(Tuple::getLongArray, Row::getLongArray, new Long[]{3L})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeLongArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Long\" = $1  WHERE \"id\" = $2 RETURNING \"Long\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addLongArray(new Long[]{4L,5L,6L,7L,8L})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Long")
                 .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new long[]{4,5,6,7,8}))
                 .returns(Tuple::getLongArray, Row::getLongArray, ColumnChecker.toObjectArray(new long[]{4,5,6,7,8}))
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeFloatArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Float\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Float")
               .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new float[]{4.1f}))
               .returns(Tuple::getFloatArray, Row::getFloatArray, ColumnChecker.toObjectArray(new float[]{4.1f}))
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeFloatArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Float\" = $1  WHERE \"id\" = $2 RETURNING \"Float\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addFloatArray(new Float[]{5.2f,5.3f,5.4f})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Float")
                 .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new float[]{5.2f,5.3f,5.4f}))
                 .returns(Tuple::getFloatArray, Row::getFloatArray, ColumnChecker.toObjectArray(new float[]{5.2f,5.3f,5.4f}))
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeDoubleArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Double\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Double")
               .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new double[]{5.2}))
               .returns(Tuple::getDoubleArray, Row::getDoubleArray, ColumnChecker.toObjectArray(new double[]{5.2}))
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeDoubleArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Double\" = $1  WHERE \"id\" = $2 RETURNING \"Double\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addDoubleArray(new Double[]{6.3})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Double")
                 .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new double[]{6.3}))
                 .returns(Tuple::getDoubleArray, Row::getDoubleArray, ColumnChecker.toObjectArray(new double[]{6.3}))
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeEmptyArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Double\" = $1  WHERE \"id\" = $2 RETURNING \"Double\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addDoubleArray(new Double[]{})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Double")
                 .returns(Tuple::getValue, Row::getValue, ColumnChecker.toObjectArray(new double[]{}))
                 .returns(Tuple::getDoubleArray, Row::getDoubleArray, ColumnChecker.toObjectArray(new double[]{}))
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeStringArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Text\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Text")
               .returns(Tuple::getValue, Row::getValue, new String[]{"Knock, knock.Who’s there?very long pause….Java."})
               .returns(Tuple::getStringArray, Row::getStringArray, new String[]{"Knock, knock.Who’s there?very long pause….Java."})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeStringArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Text\" = $1  WHERE \"id\" = $2 RETURNING \"Text\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
               .addStringArray(new String[]{"Knock, knock.Who’s there?"})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Text")
                 .returns(Tuple::getValue, Row::getValue, new String[]{"Knock, knock.Who’s there?"})
                 .returns(Tuple::getStringArray, Row::getStringArray, new String[]{"Knock, knock.Who’s there?"})
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeLocalDateArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"LocalDate\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             final LocalDate dt = LocalDate.parse("1998-05-11");
             ColumnChecker.checkColumn(0, "LocalDate")
               .returns(Tuple::getValue, Row::getValue, new Object[]{dt, dt})
               .returns(Tuple::getLocalDateArray, Row::getLocalDateArray, new Object[]{dt, dt})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeLocalDateArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"LocalDate\" = $1  WHERE \"id\" = $2 RETURNING \"LocalDate\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           final LocalDate dt = LocalDate.parse("1998-05-12");
           p.execute(Tuple.tuple()
               .addLocalDateArray(new LocalDate[]{dt})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "LocalDate")
                 .returns(Tuple::getValue, Row::getValue, new LocalDate[]{dt})
                 .returns(Tuple::getLocalDateArray, Row::getLocalDateArray, new LocalDate[]{dt})
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
@@ -1636,40 +1638,40 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeLocalTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"LocalTime\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "LocalTime")
               .returns(Tuple::getValue, Row::getValue, new LocalTime[]{lt})
               .returns(Tuple::getLocalTimeArray, Row::getLocalTimeArray, new LocalTime[]{lt})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeLocalTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"LocalTime\" = $1  WHERE \"id\" = $2 RETURNING \"LocalTime\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSS");
           final LocalTime dt = LocalTime.parse("17:55:04.90512", dtf);
           p.execute(Tuple.tuple()
               .addLocalTimeArray(new LocalTime[]{dt})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "LocalTime")
                 .returns(Tuple::getValue, Row::getValue, new LocalTime[]{dt})
                 .returns(Tuple::getLocalTimeArray, Row::getLocalTimeArray, new LocalTime[]{dt})
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
@@ -1678,79 +1680,79 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeOffsetTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"OffsetTime\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "OffsetTime")
               .returns(Tuple::getValue, Row::getValue, new OffsetTime[]{dt})
               .returns(Tuple::getOffsetTimeArray, Row::getOffsetTimeArray, new OffsetTime[]{dt})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeOffsetTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"OffsetTime\" = $1  WHERE \"id\" = $2 RETURNING \"OffsetTime\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           final OffsetTime dt = OffsetTime.parse("17:56:04.90512+03:07");
           p.execute(Tuple.tuple()
               .addOffsetTimeArray(new OffsetTime[]{dt})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "OffsetTime")
                 .returns(Tuple::getValue, Row::getValue, new OffsetTime[]{dt})
                 .returns(Tuple::getOffsetTimeArray, Row::getOffsetTimeArray, new OffsetTime[]{dt})
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeLocalDateTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"LocalDateTime\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             final LocalDateTime dt = LocalDateTime.parse("2017-05-14T19:35:58.237666");
             ColumnChecker.checkColumn(0, "LocalDateTime")
               .returns(Tuple::getValue, Row::getValue, new LocalDateTime[]{dt})
               .returns(Tuple::getLocalDateTimeArray, Row::getLocalDateTimeArray, new LocalDateTime[]{dt})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeLocalDateTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"LocalDateTime\" = $1  WHERE \"id\" = $2 RETURNING \"LocalDateTime\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           final LocalDateTime dt = LocalDateTime.parse("2017-05-14T19:35:58.237666");
           p.execute(Tuple.tuple()
               .addLocalDateTimeArray(new LocalDateTime[]{dt})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "LocalDateTime")
                 .returns(Tuple::getValue, Row::getValue, new LocalDateTime[]{dt})
                 .returns(Tuple::getLocalDateTimeArray, Row::getLocalDateTimeArray, new LocalDateTime[]{dt})
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
@@ -1759,90 +1761,90 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeOffsetDateTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"OffsetDateTime\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "OffsetDateTime")
               .returns(Tuple::getValue, Row::getValue, new OffsetDateTime[]{odt})
               .returns(Tuple::getOffsetDateTimeArray, Row::getOffsetDateTimeArray, new OffsetDateTime[]{odt})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeOffsetDateTimeArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"OffsetDateTime\" = $1  WHERE \"id\" = $2 RETURNING \"OffsetDateTime\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           final OffsetDateTime dt = OffsetDateTime.parse("2017-05-14T19:35:58.237666Z");
           p.execute(Tuple.tuple()
               .addOffsetDateTimeArray(new OffsetDateTime[]{dt})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "OffsetDateTime")
                 .returns(Tuple::getValue, Row::getValue, new OffsetDateTime[]{dt})
                 .returns(Tuple::getOffsetDateTimeArray, Row::getOffsetDateTimeArray, new OffsetDateTime[]{dt})
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeUUIDArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"UUID\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             final UUID uuid = UUID.fromString("6f790482-b5bd-438b-a8b7-4a0bed747011");
             ColumnChecker.checkColumn(0, "UUID")
               .returns(Tuple::getValue, Row::getValue, new UUID[]{uuid})
               .returns(Tuple::getUUIDArray, Row::getUUIDArray, new UUID[]{uuid})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeUUIDArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"UUID\" = $1  WHERE \"id\" = $2 RETURNING \"UUID\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           final UUID uuid = UUID.fromString("6f790482-b5bd-438b-a8b7-4a0bed747011");
           p.execute(Tuple.tuple()
               .addUUIDArray(new UUID[]{uuid})
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "UUID")
                 .returns(Tuple::getValue, Row::getValue, new UUID[]{uuid})
                 .returns(Tuple::getUUIDArray, Row::getUUIDArray, new UUID[]{uuid})
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
   @Test
   public void testDecodeNumericArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Numeric\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
-            .addInteger(1), ctx.asyncAssertSuccess(result -> {
+            .addInteger(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             Numeric[] expected = {
               Numeric.create(0),
               Numeric.create(1),
@@ -1854,17 +1856,17 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
               .returns(Tuple::getNumericArray, Row::getNumericArray, expected)
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 
   @Test
   public void testEncodeNumericArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Numeric\" = $1  WHERE \"id\" = $2 RETURNING \"Numeric\"",
-        ctx.asyncAssertSuccess(p -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
           Numeric[] expected = {
             Numeric.create(0),
             Numeric.create(10000),
@@ -1872,14 +1874,14 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
           p.execute(Tuple.tuple()
               .addNumericArray(expected)
               .addInteger(2)
-            , ctx.asyncAssertSuccess(result -> {
+            , AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
               ColumnChecker.checkColumn(0, "Numeric")
                 .returns(Tuple::getValue, Row::getValue, expected)
                 .returns(Tuple::getNumericArray, Row::getNumericArray, expected)
                 .forRow(result.iterator().next());
               async.complete();
-            }));
-        }));
+            })));
+        })));
     }));
   }
 
@@ -1890,17 +1892,17 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
     byte[] bytes = new byte[len];
     r.nextBytes(bytes);
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT ARRAY[$1::BYTEA] \"Bytea\"",
-        ctx.asyncAssertSuccess(p -> {
-          p.execute(Tuple.of(Buffer.buffer(bytes)), ctx.asyncAssertSuccess(result -> {
+        AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(p -> {
+          p.execute(Tuple.of(Buffer.buffer(bytes)), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
             ColumnChecker.checkColumn(0, "Bytea")
               .returns(Tuple::getValue, Row::getValue, new Buffer[]{Buffer.buffer(bytes)})
               .returns(Tuple::getBufferArray, Row::getBufferArray, new Buffer[]{Buffer.buffer(bytes)})
               .forRow(result.iterator().next());
             async.complete();
-          }));
-        }));
+          })));
+        })));
     }));
   }
 

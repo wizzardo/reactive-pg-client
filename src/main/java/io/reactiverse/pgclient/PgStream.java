@@ -21,7 +21,7 @@ import io.reactiverse.pgclient.shared.ReadStream;
 import io.vertx.codegen.annotations.VertxGen;
 import io.reactiverse.pgclient.shared.Handler;
 
-@VertxGen
+//@VertxGen
 public interface PgStream<T> extends ReadStream<T> {
 
   @Override

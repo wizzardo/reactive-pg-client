@@ -17,6 +17,7 @@
 package io.reactiverse.pgclient.it;
 
 import io.reactiverse.pgclient.PgConnectOptions;
+import io.reactiverse.pgclient.impl.VertxPgConnectOptionsFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -25,7 +26,7 @@ public class EnvTest {
 
   @Test
   public void testFoo() {
-    PgConnectOptions options = PgConnectOptions.fromEnv();
+    PgConnectOptions options = VertxPgConnectOptionsFactory.fromEnv();
     assertEquals("test_host", options.getHost());
     assertEquals("test_database", options.getDatabase());
     assertEquals("test_user", options.getUser());

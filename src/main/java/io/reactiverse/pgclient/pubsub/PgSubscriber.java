@@ -18,10 +18,10 @@ package io.reactiverse.pgclient.pubsub;
 
 import io.reactiverse.pgclient.PgConnectOptions;
 import io.reactiverse.pgclient.PgConnection;
+import io.reactiverse.pgclient.VertxPgConnectOptions;
 import io.reactiverse.pgclient.shared.AsyncResult;
-import io.reactiverse.pgclient.impl.pubsub.PgSubscriberImpl;
+import io.reactiverse.pgclient.impl.pubsub.VertxPgSubscriberImpl;
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.VertxGen;
 import io.reactiverse.pgclient.shared.Handler;
 import io.vertx.core.Vertx;
 
@@ -32,7 +32,7 @@ import java.util.function.Function;
  * <p/>
  * The subscriber manages a single connection to Postgres.
  */
-@VertxGen
+//@VertxGen
 public interface PgSubscriber {
 
   /**
@@ -42,8 +42,8 @@ public interface PgSubscriber {
    * @param options the connect options
    * @return the subscriber
    */
-  static PgSubscriber subscriber(Vertx vertx, PgConnectOptions options) {
-    return new PgSubscriberImpl(vertx, options);
+  static PgSubscriber subscriber(Vertx vertx, VertxPgConnectOptions options) {
+    return new VertxPgSubscriberImpl(vertx, options);
   }
 
   /**

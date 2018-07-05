@@ -23,7 +23,7 @@ import java.util.Iterator;
 /**
  * An iterator for processing postgres items synchronously.
  */
-@VertxGen
+//@VertxGen
 public interface PgIterator extends Iterator<Row> {
 
   @Override

@@ -24,7 +24,7 @@ import io.reactiverse.pgclient.shared.Handler;
 /**
  * A transaction that allows to control the transaction and receive events.
  */
-@VertxGen
+//@VertxGen
 public interface PgTransaction {
 
   /**

@@ -37,11 +37,11 @@ import io.vertx.core.VertxException;
 public class PgPoolImpl extends PgClientBase<PgPoolImpl> implements PgPool {
 
   private final Context context;
-  private final PgConnectionFactory factory;
+  private final VertxPgConnectionFactory factory;
   private final ConnectionPool pool;
   private final boolean closeVertx;
 
-  public PgPoolImpl(Vertx vertx, boolean closeVertx, PgPoolOptions options) {
+  public PgPoolImpl(Vertx vertx, boolean closeVertx, VertxPgPoolOptions options) {
     int maxSize = options.getMaxSize();
     if (maxSize < 1) {
       throw new IllegalArgumentException("Pool max size must be > 0");
@@ -50,7 +50,7 @@ public class PgPoolImpl extends PgClientBase<PgPoolImpl> implements PgPool {
       throw new VertxException("Native transport is not available");
     }
     this.context = vertx.getOrCreateContext();
-    this.factory = new PgConnectionFactory(context, Vertx.currentContext() != null, options);
+    this.factory = new VertxPgConnectionFactory(context, Vertx.currentContext() != null, options);
     this.pool = new ConnectionPool(completionHandler -> factory.connect(completionHandler::handle), maxSize);
     this.closeVertx = closeVertx;
   }

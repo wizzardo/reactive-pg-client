@@ -183,7 +183,8 @@
 <tr class="altColor">
 <td class="colFirst"><code>static io.reactivex.Single&lt;<a href="../../../../../io/reactiverse/reactivex/pgclient/PgConnection.html" title="class in io.reactiverse.reactivex.pgclient">PgConnection</a>&gt;</code></td>
 <td class="colLast"><span class="typeNameLabel">PgClient.</span><code><span class="memberNameLink"><a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#rxConnect-io.vertx.reactivex.core.Vertx-">rxConnect</a></span>(io.vertx.reactivex.core.Vertx&nbsp;vertx)</code>
-<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx, io.reactiverse.pgclient.PgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from the environment variables.</div>
+<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx,
+    io.reactiverse.pgclient.VertxPgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from the environment variables.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -197,7 +198,8 @@
 <td class="colFirst"><code>static io.reactivex.Single&lt;<a href="../../../../../io/reactiverse/reactivex/pgclient/PgConnection.html" title="class in io.reactiverse.reactivex.pgclient">PgConnection</a>&gt;</code></td>
 <td class="colLast"><span class="typeNameLabel">PgClient.</span><code><span class="memberNameLink"><a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#rxConnect-io.vertx.reactivex.core.Vertx-java.lang.String-">rxConnect</a></span>(io.vertx.reactivex.core.Vertx&nbsp;vertx,
          <a href="http://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;connectionUri)</code>
-<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx, io.reactiverse.pgclient.PgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from <code>connectionUri</code>.</div>
+<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx,
+    io.reactiverse.pgclient.VertxPgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from <code>connectionUri</code>.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -219,7 +221,8 @@
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><span class="typeNameLabel">PgClient.</span><code><span class="memberNameLink"><a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.vertx.core.Handler-">connect</a></span>(io.vertx.reactivex.core.Vertx&nbsp;vertx,
        io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;<a href="../../../../../io/reactiverse/reactivex/pgclient/PgConnection.html" title="class in io.reactiverse.reactivex.pgclient">PgConnection</a>&gt;&gt;&nbsp;handler)</code>
-<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx, io.reactiverse.pgclient.PgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from the environment variables.</div>
+<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx,
+    io.reactiverse.pgclient.VertxPgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from the environment variables.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -235,7 +238,8 @@
 <td class="colLast"><span class="typeNameLabel">PgClient.</span><code><span class="memberNameLink"><a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-java.lang.String-io.vertx.core.Handler-">connect</a></span>(io.vertx.reactivex.core.Vertx&nbsp;vertx,
        <a href="http://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;connectionUri,
        io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;<a href="../../../../../io/reactiverse/reactivex/pgclient/PgConnection.html" title="class in io.reactiverse.reactivex.pgclient">PgConnection</a>&gt;&gt;&nbsp;handler)</code>
-<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx, io.reactiverse.pgclient.PgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from <code>connectionUri</code>.</div>
+<div class="block">Like <a href="../../../../../io/reactiverse/reactivex/pgclient/PgClient.html#connect-io.vertx.reactivex.core.Vertx-io.reactiverse.pgclient.PgConnectOptions-io.vertx.core.Handler-"><code>PgClient.connect(io.vertx.reactivex.core.Vertx,
+    io.reactiverse.pgclient.VertxPgConnectOptions, io.vertx.core.Handler&lt;io.vertx.core.AsyncResult&lt;io.reactiverse.reactivex.pgclient.PgConnection&gt;&gt;)</code></a> with options build from <code>connectionUri</code>.</div>
 </td>
 </tr>
 <tr class="rowColor">

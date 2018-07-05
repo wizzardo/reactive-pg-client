@@ -17,12 +17,14 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class PgConnectionTest extends PgConnectionTestBase {
 
   public PgConnectionTest() {
-    connector = (handler) -> PgClient.connect(vertx, options, handler);
+    connector = (handler) -> VertxPgClientFactory.connect(vertx, options, handler);
   }
 }

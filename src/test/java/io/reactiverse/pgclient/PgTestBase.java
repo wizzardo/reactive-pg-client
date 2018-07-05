@@ -24,10 +24,8 @@ import de.flapdoodle.embed.process.store.IArtifactStore;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
-import ru.yandex.qatools.embed.postgresql.config.PostgresConfig;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,7 +43,7 @@ import static ru.yandex.qatools.embed.postgresql.distribution.Version.Main.V9_6;
 public abstract class PgTestBase {
 
   private static EmbeddedPostgres postgres;
-  static PgConnectOptions options;
+  static VertxPgConnectOptions options;
 
   @BeforeClass
   public static void before() throws Exception {
@@ -57,11 +55,11 @@ public abstract class PgTestBase {
     stopPg();
   }
 
-  public synchronized static PgConnectOptions startPg() throws Exception {
+  public synchronized static VertxPgConnectOptions startPg() throws Exception {
     return startPg(false);
   }
 
-  public synchronized static PgConnectOptions startPg(boolean domainSockets) throws Exception {
+  public synchronized static VertxPgConnectOptions startPg(boolean domainSockets) throws Exception {
     if (postgres != null) {
       throw new IllegalStateException();
     }
@@ -138,7 +136,7 @@ public abstract class PgTestBase {
       Collections.emptyList());
     File setupFile = getResourceAsFile("create-postgres.sql");
     PgTestBase.postgres.getProcess().get().importFromFile(setupFile);
-    PgConnectOptions options = new PgConnectOptions();
+    VertxPgConnectOptions options = new VertxPgConnectOptions();
     options.setHost(domainSockets ? sock.getAbsolutePath() : "localhost");
     options.setPort(8081);
     options.setUser("postgres");

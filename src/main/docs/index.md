@@ -190,7 +190,7 @@ You can execute prepared batch
 You can cache prepared queries:
 
 ```$lang
-{@link examples.Examples#queries09(io.vertx.core.Vertx, PgPoolOptions)}
+{@link examples.Examples#queries09(io.vertx.core.Vertx, VertxPgPoolOptions)}
 ```
 
 ## Using connections
@@ -209,7 +209,7 @@ Prepared queries can be created:
 ```
 
 NOTE: prepared query caching depends on the {@link io.reactiverse.pgclient.PgConnectOptions#setCachePreparedStatements(boolean)} and
-does not depend on whether you are creating prepared queries or use {@link io.reactiverse.pgclient.PgClient#preparedQuery(java.lang.String, io.vertx.core.Handler) direct prepared queries}
+does not depend on whether you are creating prepared queries or use {@link io.reactiverse.pgclient.PgClient#preparedQuery(java.lang.String, io.reactiverse.pgclient.shared.Handler) direct prepared queries}
 
 By default prepared query executions fetch all rows, you can use a {@link io.reactiverse.pgclient.PgCursor} to control the amount of rows you want to read:
 
@@ -253,7 +253,7 @@ Or you can use the transaction API of {@link io.reactiverse.pgclient.PgConnectio
 ```
 
 When Postgres reports the current transaction is failed (e.g the infamous _current transaction is aborted, commands ignored until
-end of transaction block_), the transaction is rollbacked and the {@link io.reactiverse.pgclient.PgTransaction#abortHandler(io.vertx.core.Handler)}
+end of transaction block_), the transaction is rollbacked and the {@link io.reactiverse.pgclient.PgTransaction#abortHandler(io.reactiverse.pgclient.shared.Handler)}
 is called:
 
 ```$lang
@@ -336,7 +336,7 @@ create easily create a string directly from the row set:
 
 Postgres supports pub/sub communication channels.
 
-You can set a {@link io.reactiverse.pgclient.PgConnection#notificationHandler(io.vertx.core.Handler)} to receive
+You can set a {@link io.reactiverse.pgclient.PgConnection#notificationHandler(io.reactiverse.pgclient.shared.Handler)} to receive
 Postgres notifications:
 
 ```$lang

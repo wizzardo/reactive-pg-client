@@ -18,6 +18,7 @@
 package examples;
 
 import io.reactiverse.pgclient.*;
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
 import io.reactiverse.pgclient.pubsub.PgSubscriber;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -40,7 +41,7 @@ public class Examples {
   public void gettingStarted() {
 
     // Pool options
-    PgPoolOptions options = new PgPoolOptions()
+    VertxPgPoolOptions options = new VertxPgPoolOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -49,7 +50,7 @@ public class Examples {
       .setMaxSize(5);
 
     // Create the client pool
-    PgPool client = PgClient.pool(options);
+    PgPool client = VertxPgClientFactory.pool(options);
 
     // A simple query
     client.query("SELECT * FROM users WHERE id='julien'", ar -> {
@@ -68,10 +69,10 @@ public class Examples {
   public void configureFromEnv(Vertx vertx) {
 
     // Create the pool from the environment variables
-    PgPool pool = PgClient.pool();
+    PgPool pool = VertxPgClientFactory.pool();
 
     // Create the connection from the environment variables
-    PgClient.connect(vertx, res -> {
+    VertxPgClientFactory.connect(vertx, res -> {
       // Handling your connection
     });
   }
@@ -82,10 +83,10 @@ public class Examples {
     String connectionUri = "postgresql://dbuser:secretpassword@database.server.com:3211/mydb";
 
     // Create the pool from the connection URI
-    PgPool pool = PgClient.pool(connectionUri);
+    PgPool pool = VertxPgClientFactory.pool(connectionUri);
 
     // Create the connection from the connection URI
-    PgClient.connect(vertx, connectionUri, res -> {
+    VertxPgClientFactory.connect(vertx, connectionUri, res -> {
       // Handling your connection
     });
   }
@@ -93,7 +94,7 @@ public class Examples {
   public void connecting01() {
 
     // Pool options
-    PgPoolOptions options = new PgPoolOptions()
+    VertxPgPoolOptions options = new VertxPgPoolOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -102,13 +103,13 @@ public class Examples {
       .setMaxSize(5);
 
     // Create the pooled client
-    PgPool client = PgClient.pool(options);
+    PgPool client = VertxPgClientFactory.pool(options);
   }
 
   public void connecting02(Vertx vertx) {
 
     // Pool options
-    PgPoolOptions options = new PgPoolOptions()
+    VertxPgPoolOptions options = new VertxPgPoolOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -117,7 +118,7 @@ public class Examples {
       .setMaxSize(5);
 
     // Create the pooled client
-    PgPool client = PgClient.pool(vertx, options);
+    PgPool client = VertxPgClientFactory.pool(vertx, options);
   }
 
   public void connecting03(PgPool pool) {
@@ -129,7 +130,7 @@ public class Examples {
   public void connecting04(Vertx vertx) {
 
     // Pool options
-    PgPoolOptions options = new PgPoolOptions()
+    VertxPgPoolOptions options = new VertxPgPoolOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -138,7 +139,7 @@ public class Examples {
       .setMaxSize(5);
 
     // Create the pooled client
-    PgPool client = PgClient.pool(vertx, options);
+    PgPool client = VertxPgClientFactory.pool(vertx, options);
 
     // Get a connection from the pool
     client.getConnection(ar1 -> {
@@ -171,7 +172,7 @@ public class Examples {
   public void connecting05(Vertx vertx) {
 
     // Pool options
-    PgConnectOptions options = new PgConnectOptions()
+    VertxPgConnectOptions options = new VertxPgConnectOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -179,7 +180,7 @@ public class Examples {
       .setPassword("secret");
 
     // Connect to Postgres
-    PgClient.connect(vertx, options, res -> {
+    VertxPgClientFactory.connect(vertx, options, res -> {
       if (res.succeeded()) {
 
         System.out.println("Connected");
@@ -209,17 +210,17 @@ public class Examples {
 
     // Pool Options
     // Socket file name will be /var/run/postgresql/.s.PGSQL.5432
-    PgPoolOptions options = new PgPoolOptions()
+    VertxPgPoolOptions options = new VertxPgPoolOptions()
       .setHost("/var/run/postgresql")
       .setPort(5432)
       .setDatabase("the-db");
 
     // Create the pooled client
-    PgPool client = PgClient.pool(options);
+    PgPool client = VertxPgClientFactory.pool(options);
 
     // Create the pooled client with a vertx instance
     // Make sure the vertx instance has enabled native transports
-    PgPool client2 = PgClient.pool(vertx, options);
+    PgPool client2 = VertxPgClientFactory.pool(vertx, options);
   }
 
   public void queries01(PgClient client) {
@@ -305,12 +306,12 @@ public class Examples {
     });
   }
 
-  public void queries09(Vertx vertx, PgPoolOptions options) {
+  public void queries09(Vertx vertx, VertxPgPoolOptions options) {
 
     // Enable prepare statements
     options.setCachePreparedStatements(true);
 
-    PgPool client = PgClient.pool(vertx, options);
+    PgPool client = VertxPgClientFactory.pool(vertx, options);
   }
 
   public void usingConnections01(Vertx vertx, PgPool pool) {
@@ -507,7 +508,7 @@ public class Examples {
 
   public void pubsub02(Vertx vertx) {
 
-    PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new PgConnectOptions()
+    PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new VertxPgConnectOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -533,7 +534,7 @@ public class Examples {
 
   public void pubsub03(Vertx vertx) {
 
-    PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new PgConnectOptions()
+    PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new VertxPgConnectOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -553,7 +554,7 @@ public class Examples {
 
   public void ex10(Vertx vertx) {
 
-    PgConnectOptions options = new PgConnectOptions()
+    VertxPgConnectOptions options = new VertxPgConnectOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")
@@ -562,7 +563,7 @@ public class Examples {
       .setSsl(true)
       .setPemTrustOptions(new PemTrustOptions().addCertPath("/path/to/cert.pem"));
 
-    PgClient.connect(vertx, options, res -> {
+    VertxPgClientFactory.connect(vertx, options, res -> {
       if (res.succeeded()) {
         // Connected with SSL
       } else {

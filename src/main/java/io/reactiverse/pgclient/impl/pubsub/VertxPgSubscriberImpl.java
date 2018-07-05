@@ -17,8 +17,10 @@
 package io.reactiverse.pgclient.impl.pubsub;
 
 import io.reactiverse.pgclient.*;
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
 import io.reactiverse.pgclient.pubsub.PgSubscriber;
 import io.reactiverse.pgclient.pubsub.PgChannel;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.*;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -27,13 +29,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class PgSubscriberImpl implements PgSubscriber {
+public class VertxPgSubscriberImpl implements PgSubscriber {
 
-  private static Logger log = LoggerFactory.getLogger(PgSubscriberImpl.class);
+  private static Logger log = LoggerFactory.getLogger(VertxPgSubscriberImpl.class);
   private static final Function<Integer, Long> DEFAULT_RECONNECT_POLICY = count -> -1L;
 
   private final Vertx vertx;
-  private final PgConnectOptions options;
+  private final VertxPgConnectOptions options;
   private Map<String, ChannelList> channels = new HashMap<>();
   private Function<Integer, Long> reconnectPolicy = DEFAULT_RECONNECT_POLICY;
 
@@ -42,9 +44,9 @@ public class PgSubscriberImpl implements PgSubscriber {
   private boolean closed = true;
   private Handler<Void> closeHandler;
 
-  public PgSubscriberImpl(Vertx vertx, PgConnectOptions options) {
+  public VertxPgSubscriberImpl(Vertx vertx, VertxPgConnectOptions options) {
     this.vertx = vertx;
-    this.options = new PgConnectOptions(options);
+    this.options = new VertxPgConnectOptions(options);
   }
 
   private void handleNotification(PgNotification notif) {
@@ -72,8 +74,8 @@ public class PgSubscriberImpl implements PgSubscriber {
   }
 
   @Override
-  public synchronized PgSubscriber closeHandler(Handler<Void> handler) {
-    closeHandler = handler;
+  public synchronized PgSubscriber closeHandler(io.reactiverse.pgclient.shared.Handler<Void> handler) {
+    closeHandler = handler::handle;
     return this;
   }
 
@@ -131,7 +133,7 @@ public class PgSubscriberImpl implements PgSubscriber {
   }
 
   @Override
-  public synchronized PgSubscriber connect(Handler<AsyncResult<Void>> handler) {
+  public synchronized PgSubscriber connect(io.reactiverse.pgclient.shared.Handler<io.reactiverse.pgclient.shared.AsyncResult<Void>> handler) {
     if (closed) {
       closed = false;
       tryConnect(0, handler);
@@ -139,7 +141,7 @@ public class PgSubscriberImpl implements PgSubscriber {
     return this;
   }
 
-  private void tryConnect(long delayMillis, Handler<AsyncResult<Void>> handler) {
+  private void tryConnect(long delayMillis, io.reactiverse.pgclient.shared.Handler<io.reactiverse.pgclient.shared.AsyncResult<Void>> handler) {
     if (!connecting) {
       connecting = true;
       if (delayMillis > 0) {
@@ -150,16 +152,16 @@ public class PgSubscriberImpl implements PgSubscriber {
     }
   }
 
-  private void doConnect(Handler<AsyncResult<Void>> completionHandler) {
-    PgClient.connect(vertx, options, ar -> handleConnectResult(completionHandler, ar));
+  private void doConnect(io.reactiverse.pgclient.shared.Handler<io.reactiverse.pgclient.shared.AsyncResult<Void>> completionHandler) {
+    VertxPgClientFactory.connect(vertx, options, ar -> handleConnectResult(completionHandler, ar));
   }
 
-  private synchronized void handleConnectResult(Handler<AsyncResult<Void>> completionHandler, AsyncResult<PgConnection> ar1) {
+  private synchronized void handleConnectResult(io.reactiverse.pgclient.shared.Handler<io.reactiverse.pgclient.shared.AsyncResult<Void>> completionHandler, AsyncResult<PgConnection> ar1) {
     connecting = false;
     if (ar1.succeeded()) {
       conn = ar1.result();
-      conn.notificationHandler(PgSubscriberImpl.this::handleNotification);
-      conn.closeHandler(PgSubscriberImpl.this::handleClose);
+      conn.notificationHandler(VertxPgSubscriberImpl.this::handleNotification);
+      conn.closeHandler(VertxPgSubscriberImpl.this::handleClose);
       if (channels.size() > 0) {
         List<Handler<Void>> handlers = channels.values()
           .stream()
@@ -186,7 +188,7 @@ public class PgSubscriberImpl implements PgSubscriber {
         return;
       }
     }
-    completionHandler.handle(ar1.mapEmpty());
+    completionHandler.handle(AsyncResultVertxConverter.from(ar1.mapEmpty()));
   }
 
   private class ChannelList {
@@ -248,23 +250,23 @@ public class PgSubscriberImpl implements PgSubscriber {
     }
 
     @Override
-    public PgChannel subscribeHandler(Handler<Void> handler) {
-      synchronized (PgSubscriberImpl.this) {
-        subscribeHandler = handler;
+    public PgChannel subscribeHandler(io.reactiverse.pgclient.shared.Handler<Void> handler) {
+      synchronized (VertxPgSubscriberImpl.this) {
+        subscribeHandler = handler::handle;
       }
       return this;
     }
 
     @Override
-    public ChannelImpl exceptionHandler(Handler<Throwable> handler) {
+    public ChannelImpl exceptionHandler(io.reactiverse.pgclient.shared.Handler<Throwable> handler) {
       return this;
     }
 
     @Override
-    public ChannelImpl handler(Handler<String> handler) {
-      synchronized (PgSubscriberImpl.this) {
+    public ChannelImpl handler(io.reactiverse.pgclient.shared.Handler<String> handler) {
+      synchronized (VertxPgSubscriberImpl.this) {
         if (handler != null) {
-          eventHandler = handler;
+          eventHandler = handler::handle;
           if (channel == null) {
             channel = channels.computeIfAbsent(name, ChannelList::new);
             channel.add(this);
@@ -285,16 +287,16 @@ public class PgSubscriberImpl implements PgSubscriber {
     }
 
     @Override
-    public ChannelImpl endHandler(Handler<Void> handler) {
-      synchronized (PgSubscriberImpl.this) {
-        endHandler = handler;
+    public ChannelImpl endHandler(io.reactiverse.pgclient.shared.Handler<Void> handler) {
+      synchronized (VertxPgSubscriberImpl.this) {
+        endHandler = handler::handle;
       }
       return this;
     }
 
     @Override
     public ChannelImpl pause() {
-      synchronized (PgSubscriberImpl.this) {
+      synchronized (VertxPgSubscriberImpl.this) {
         paused = true;
       }
       return this;
@@ -302,7 +304,7 @@ public class PgSubscriberImpl implements PgSubscriber {
 
     @Override
     public ChannelImpl resume() {
-      synchronized (PgSubscriberImpl.this) {
+      synchronized (VertxPgSubscriberImpl.this) {
         paused = false;
       }
       return this;
@@ -311,7 +313,7 @@ public class PgSubscriberImpl implements PgSubscriber {
 
   @Override
   public void close() {
-    synchronized (PgSubscriberImpl.this) {
+    synchronized (VertxPgSubscriberImpl.this) {
       if (!closed) {
         closed = true;
         if (conn != null) {

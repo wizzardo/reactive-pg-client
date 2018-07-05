@@ -22,7 +22,7 @@ import io.vertx.codegen.annotations.VertxGen;
 /**
  * A set of rows.
  */
-@VertxGen
+//@VertxGen
 public interface PgRowSet extends Iterable<Row>, PgResult<PgRowSet> {
 
   @Override

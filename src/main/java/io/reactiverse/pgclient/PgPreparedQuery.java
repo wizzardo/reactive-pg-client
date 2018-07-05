@@ -32,7 +32,7 @@ import java.util.stream.Collector;
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@VertxGen
+//@VertxGen
 public interface PgPreparedQuery {
 
   /**

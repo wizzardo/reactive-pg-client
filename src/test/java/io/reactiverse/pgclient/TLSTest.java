@@ -17,6 +17,8 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.ext.unit.Async;
@@ -46,25 +48,25 @@ public class TLSTest extends PgTestBase {
   @Test
   public void testTLS(TestContext ctx) {
     Async async = ctx.async();
-    PgConnectOptions options = new PgConnectOptions(PgTestBase.options)
+    VertxPgConnectOptions options = new VertxPgConnectOptions(PgTestBase.options)
       .setSsl(true)
       .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server.crt"));
-    PgClient.connect(vertx, new PgConnectOptions(options).setSsl(true).setTrustAll(true), ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, new VertxPgConnectOptions(options).setSsl(true).setTrustAll(true), ctx.asyncAssertSuccess(conn -> {
       ctx.assertTrue(conn.isSSL());
-      conn.query("SELECT * FROM Fortune WHERE id=1", ctx.asyncAssertSuccess(result -> {
+      conn.query("SELECT * FROM Fortune WHERE id=1", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(1, result.size());
         Tuple row = result.iterator().next();
         ctx.assertEquals(1, row.getInteger(0));
         ctx.assertEquals("fortune: No such file or directory", row.getString(1));
         async.complete();
-      }));
+      })));
     }));
   }
 
   @Test
   public void testTLSTrustAll(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, new PgConnectOptions(options).setSsl(true).setTrustAll(true), ctx.asyncAssertSuccess(conn -> {
+    VertxPgClientFactory.connect(vertx, new VertxPgConnectOptions(options).setSsl(true).setTrustAll(true), ctx.asyncAssertSuccess(conn -> {
       ctx.assertTrue(conn.isSSL());
       async.complete();
     }));
@@ -73,7 +75,7 @@ public class TLSTest extends PgTestBase {
   @Test
   public void testTLSInvalidCertificate(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, new PgConnectOptions(options).setSsl(true), ctx.asyncAssertFailure(err -> {
+    VertxPgClientFactory.connect(vertx, new VertxPgConnectOptions(options).setSsl(true), ctx.asyncAssertFailure(err -> {
       ctx.assertEquals(err.getClass(), SSLHandshakeException.class);
       async.complete();
     }));

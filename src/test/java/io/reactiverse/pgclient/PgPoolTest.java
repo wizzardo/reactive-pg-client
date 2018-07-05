@@ -17,6 +17,8 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Test;
@@ -29,8 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PgPoolTest extends PgPoolTestBase {
 
   @Override
-  protected PgPool createPool(PgConnectOptions options, int size) {
-    return PgClient.pool(vertx, new PgPoolOptions(options).setMaxSize(size));
+  protected PgPool createPool(VertxPgConnectOptions options, int size) {
+    return VertxPgClientFactory.pool(vertx, new VertxPgPoolOptions(options).setMaxSize(size));
   }
 
   @Test
@@ -43,15 +45,15 @@ public class PgPoolTest extends PgPoolTestBase {
       conn.connect();
     });
     proxy.listen(8080, "localhost", ctx.asyncAssertSuccess(v1 -> {
-      PgPool pool = createPool(new PgConnectOptions(options).setPort(8080).setHost("localhost"), 1);
-      pool.getConnection(ctx.asyncAssertSuccess(conn -> {
+      PgPool pool = createPool(new VertxPgConnectOptions(options).setPort(8080).setHost("localhost"), 1);
+      pool.getConnection(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(conn -> {
         proxyConn.get().close();
-      }));
-      pool.getConnection(ctx.asyncAssertSuccess(conn -> {
-        conn.query("SELECT id, randomnumber from WORLD", ctx.asyncAssertSuccess(v2 -> {
+      })));
+      pool.getConnection(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(conn -> {
+        conn.query("SELECT id, randomnumber from WORLD", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v2 -> {
           async.complete();
-        }));
-      }));
+        })));
+      })));
     }));
   }
 
@@ -60,7 +62,7 @@ public class PgPoolTest extends PgPoolTestBase {
     Async async = ctx.async();
     vertx.runOnContext(v -> {
       try {
-        PgClient.pool(new PgPoolOptions());
+        VertxPgClientFactory.pool(new VertxPgPoolOptions());
         ctx.fail();
       } catch (IllegalStateException ignore) {
         async.complete();
@@ -71,11 +73,11 @@ public class PgPoolTest extends PgPoolTestBase {
   @Test
   public void testRunStandalone(TestContext ctx) {
     Async async = ctx.async();
-    PgPool pool = PgClient.pool(new PgPoolOptions(options));
+    PgPool pool = VertxPgClientFactory.pool(new VertxPgPoolOptions(options));
     try {
-      pool.query("SELECT id, randomnumber from WORLD", ctx.asyncAssertSuccess(v -> {
+      pool.query("SELECT id, randomnumber from WORLD", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
         async.complete();
-      }));
+      })));
       async.await(4000);
     } finally {
       pool.close();

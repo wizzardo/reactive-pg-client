@@ -26,7 +26,7 @@ import java.time.*;
 import java.time.temporal.Temporal;
 import java.util.UUID;
 
-@VertxGen
+//@VertxGen
 public interface Row extends Tuple {
 
   /**

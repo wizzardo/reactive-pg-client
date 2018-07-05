@@ -17,6 +17,8 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Test;
@@ -31,9 +33,9 @@ public class PgPooledConnectionTest extends PgConnectionTestBase {
   public PgPooledConnectionTest() {
     connector = (handler) -> {
       if (pool == null) {
-        pool = PgClient.pool(vertx, new PgPoolOptions(options).setMaxSize(1));
+        pool = VertxPgClientFactory.pool(vertx, new VertxPgPoolOptions(options).setMaxSize(1));
       }
-      pool.getConnection(handler);
+      pool.getConnection(AsyncResultVertxConverter.from(handler));
     };
   }
 
@@ -74,23 +76,23 @@ public class PgPooledConnectionTest extends PgConnectionTestBase {
     Async done = ctx.async(2);
     connector.accept(ctx.asyncAssertSuccess(conn1 -> {
       conn1.begin();
-      conn1.query("INSERT INTO TxTest (id) VALUES (5)", ctx.asyncAssertSuccess());
-      conn1.query("SELECT txid_current()", ctx.asyncAssertSuccess(result -> {
+      conn1.query("INSERT INTO TxTest (id) VALUES (5)", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess()));
+      conn1.query("SELECT txid_current()", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
         Long txid1 = result.iterator().next().getLong(0);
         conn1.close();
         // It will be the same connection
         connector.accept(ctx.asyncAssertSuccess(conn2 -> {
-          conn2.query("SELECT id FROM TxTest WHERE id=5", ctx.asyncAssertSuccess(result2 -> {
+          conn2.query("SELECT id FROM TxTest WHERE id=5", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result2 -> {
             ctx.assertEquals(0, result2.size());
             done.countDown();
-          }));
-          conn2.query("SELECT txid_current()", ctx.asyncAssertSuccess(result2 -> {
+          })));
+          conn2.query("SELECT txid_current()", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result2 -> {
             Long txid2 = result.iterator().next().getLong(0);
             ctx.assertEquals(txid1, txid2);
             done.countDown();
-          }));
+          })));
         }));
-      }));
+      })));
     }));
   }
 }

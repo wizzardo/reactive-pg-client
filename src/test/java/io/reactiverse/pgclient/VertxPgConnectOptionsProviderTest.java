@@ -16,6 +16,7 @@
  */
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.VertxPgConnectOptionsFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -23,7 +24,7 @@ import static org.junit.Assert.*;
 /**
  * @author Billy Yuan <billy112487983@gmail.com>
  */
-public class PgConnectOptionsProviderTest {
+public class VertxPgConnectOptionsProviderTest {
   private String connectionUri;
   private PgConnectOptions expectedConfiguration;
   private PgConnectOptions actualConfiguration;
@@ -31,9 +32,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri1() {
     connectionUri = "postgresql://";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions();
+    expectedConfiguration = new VertxPgConnectOptions();
 
     assertEquals(expectedConfiguration, actualConfiguration);
   }
@@ -41,9 +42,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri2() {
     connectionUri = "postgresql://myhost";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setHost("myhost");
 
     assertEquals(expectedConfiguration, actualConfiguration);
@@ -52,9 +53,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri3() {
     connectionUri = "postgresql://myhost:5433";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setHost("myhost")
       .setPort(5433);
 
@@ -64,9 +65,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri4() {
     connectionUri = "postgresql://myhost/mydb";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setHost("myhost")
       .setDatabase("mydb");
 
@@ -76,9 +77,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri5() {
     connectionUri = "postgresql://user@myhost";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setUser("user")
       .setHost("myhost");
 
@@ -88,9 +89,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri6() {
     connectionUri = "postgresql://user:secret@myhost";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setUser("user")
       .setPassword("secret")
       .setHost("myhost");
@@ -101,9 +102,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri7() {
     connectionUri = "postgresql://other@localhost/otherdb?port=5433&password=secret";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setUser("other")
       .setPassword("secret")
       .setHost("localhost")
@@ -116,9 +117,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri8() {
     connectionUri = "postgresql:///dbname?host=/var/lib/postgresql";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setHost("/var/lib/postgresql")
       .setDatabase("dbname");
 
@@ -128,9 +129,9 @@ public class PgConnectOptionsProviderTest {
   @Test
   public void testValidUri9() {
     connectionUri = "postgresql://%2Fvar%2Flib%2Fpostgresql/dbname";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
 
-    expectedConfiguration = new PgConnectOptions()
+    expectedConfiguration = new VertxPgConnectOptions()
       .setHost("/var/lib/postgresql")
       .setDatabase("dbname");
 
@@ -140,30 +141,30 @@ public class PgConnectOptionsProviderTest {
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidUri1() {
     connectionUri = "postgrsql://username";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidUri2() {
     connectionUri = "postgresql://username:password@loc//dbname";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidUri3() {
     connectionUri = "postgresql://user@:passowrd@localhost/dbname/qwer";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidUri4() {
     connectionUri = "postgresql://user:password@localhost:655355/dbname";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidUri5() {
     connectionUri = "postgresql://user@localhost?port=1234&port";
-    actualConfiguration = PgConnectOptions.fromUri(connectionUri);
+    actualConfiguration = VertxPgConnectOptionsFactory.fromUri(connectionUri);
   }
 }

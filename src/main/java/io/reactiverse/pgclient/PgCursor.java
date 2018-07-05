@@ -24,7 +24,7 @@ import io.reactiverse.pgclient.shared.Handler;
 /**
  * A cursor that reads progressively the rows from Postgres, it is usefull for reading very large result.
  */
-@VertxGen
+//@VertxGen
 public interface PgCursor {
 
   /**

@@ -21,6 +21,6 @@ public class PreparedStatementTest extends PreparedStatementTestBase {
 
   @Override
   protected PgConnectOptions options() {
-    return new PgConnectOptions(options).setCachePreparedStatements(false);
+    return new VertxPgConnectOptions(options).setCachePreparedStatements(false);
   }
 }
