@@ -41,6 +41,6 @@ public interface AsyncResult<T> {
     }
 
     default <V> AsyncResult<V> mapEmpty() {
-        return this.map(null);
+        return this.map((V) null);
     }
 }

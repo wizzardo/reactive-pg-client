@@ -3,7 +3,7 @@ package io.reactiverse.pgclient;
 import io.reactiverse.pgclient.data.Point;
 import io.reactiverse.pgclient.impl.VertxPgClientFactory;
 import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
-import io.vertx.core.buffer.Buffer;
+import io.reactiverse.pgclient.shared.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
