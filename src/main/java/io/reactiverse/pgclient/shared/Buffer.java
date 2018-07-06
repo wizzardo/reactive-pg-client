@@ -2,8 +2,6 @@ package io.reactiverse.pgclient.shared;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.buffer.UnpooledHeapByteBuf;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -11,7 +9,8 @@ import java.util.Arrays;
 public interface Buffer {
 
     static Buffer buffer(byte[] bytes) {
-        return new ByteBufBuffer(Unpooled.unreleasableBuffer(Unpooled.buffer(bytes.length, 2147483647)).writeBytes(bytes));
+//        return new ByteBufBuffer(Unpooled.unreleasableBuffer(Unpooled.buffer(bytes.length, 2147483647)).writeBytes(bytes));
+        return new ByteBuffer(bytes);
     }
 
     static Buffer buffer(String s) {
@@ -19,7 +18,11 @@ public interface Buffer {
     }
 
     static Buffer buffer(ByteBuf buf) {
-        return new ByteBufBuffer(buf);
+        int length = buf.readableBytes();
+        byte[] bytes = new byte[length];
+        buf.getBytes(buf.readerIndex(), bytes);
+//        return new ByteBufBuffer(buf);
+        return new ByteBuffer(bytes);
     }
 
     byte getByte(int i);
@@ -47,14 +50,13 @@ public interface Buffer {
 
         @Override
         public ByteBuf getByteBuf() {
-            UnpooledHeapByteBuf buf = new UnpooledHeapByteBuf(new UnpooledByteBufAllocator(false), length(), length());
-            buf.setBytes(0, value);
-            return buf;
+            return Unpooled.unreleasableBuffer(Unpooled.buffer(value.length, 2147483647)).writeBytes(value);
         }
 
         @Override
         public String toString() {
-            return new String(value, StandardCharsets.UTF_8);
+//            return new String(value, StandardCharsets.UTF_8);
+            return length() + ":" + Arrays.toString(value);
         }
 
         @Override
