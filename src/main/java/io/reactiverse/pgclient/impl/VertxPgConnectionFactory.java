@@ -98,7 +98,7 @@ public class VertxPgConnectionFactory {
     client.connect(socketAddress, null, ar -> {
       if (ar.succeeded()) {
         NetSocketInternal socket = (NetSocketInternal) ar.result();
-        SocketConnection conn = new SocketConnection(
+        VertxSocketConnection conn = new VertxSocketConnection(
           socket,
           cachePreparedStatements,
           pipeliningLimit,

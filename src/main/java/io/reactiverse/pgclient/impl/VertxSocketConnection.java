@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class SocketConnection implements Connection {
+public class VertxSocketConnection implements Connection {
 
   enum Status {
 
@@ -57,11 +57,11 @@ public class SocketConnection implements Connection {
   private MessageDecoder decoder;
   private MessageEncoder encoder;
 
-  public SocketConnection(NetSocketInternal socket,
-                          boolean cachePreparedStatements,
-                          int pipeliningLimit,
-                          boolean ssl,
-                          Context context) {
+  public VertxSocketConnection(NetSocketInternal socket,
+                               boolean cachePreparedStatements,
+                               int pipeliningLimit,
+                               boolean ssl,
+                               Context context) {
     this.socket = socket;
     this.ssl = ssl;
     this.context = context;
@@ -152,16 +152,16 @@ public class SocketConnection implements Connection {
     // Special handling for cache
     if (cmd instanceof PrepareStatementCommand) {
       PrepareStatementCommand psCmd = (PrepareStatementCommand) cmd;
-      Map<String, SocketConnection.CachedPreparedStatement> psCache = this.psCache;
+      Map<String, VertxSocketConnection.CachedPreparedStatement> psCache = this.psCache;
       if (psCache != null) {
-        SocketConnection.CachedPreparedStatement cached = psCache.get(psCmd.sql);
+        VertxSocketConnection.CachedPreparedStatement cached = psCache.get(psCmd.sql);
         if (cached != null) {
           Handler<? super CommandResponse<PreparedStatement>> handler = psCmd.handler;
           cached.get(handler);
           return;
         } else {
           psCmd.statement = psSeq.next();
-          psCmd.cached = cached = new SocketConnection.CachedPreparedStatement();
+          psCmd.cached = cached = new VertxSocketConnection.CachedPreparedStatement();
           psCache.put(psCmd.sql, cached);
           Handler<? super CommandResponse<PreparedStatement>> a = psCmd.handler;
           psCmd.cached.get(a);
