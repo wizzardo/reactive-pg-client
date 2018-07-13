@@ -34,14 +34,14 @@ import io.vertx.core.VertxException;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  * @author <a href="mailto:emad.albloushi@gmail.com">Emad Alblueshi</a>
  */
-public class PgPoolImpl extends PgClientBase<PgPoolImpl> implements PgPool {
+public class VertxPgPool extends PgClientBase<VertxPgPool> implements PgPool {
 
   private final Context context;
   private final VertxPgConnectionFactory factory;
   private final ConnectionPool pool;
   private final boolean closeVertx;
 
-  public PgPoolImpl(Vertx vertx, boolean closeVertx, VertxPgPoolOptions options) {
+  public VertxPgPool(Vertx vertx, boolean closeVertx, VertxPgPoolOptions options) {
     int maxSize = options.getMaxSize();
     if (maxSize < 1) {
       throw new IllegalArgumentException("Pool max size must be > 0");

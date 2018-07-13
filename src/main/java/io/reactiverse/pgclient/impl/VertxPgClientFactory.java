@@ -47,14 +47,14 @@ public class VertxPgClientFactory {
         vertxOptions.setPreferNativeTransport(true);
       }
       Vertx vertx = Vertx.vertx(vertxOptions);
-      return new PgPoolImpl(vertx, true, options);
+      return new VertxPgPool(vertx, true, options);
     }
 
     /**
      * Like {@link #pool(VertxPgPoolOptions)} with a specific {@link Vertx} instance.
      */
     public static PgPool pool(Vertx vertx, VertxPgPoolOptions options) {
-      return new PgPoolImpl(vertx, false, options);
+      return new VertxPgPool(vertx, false, options);
     }
 
     /**
