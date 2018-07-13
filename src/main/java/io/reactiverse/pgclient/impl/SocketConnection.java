@@ -114,29 +114,6 @@ public class SocketConnection implements Connection {
     schedule(new InitCommand(this, username, password, database, completionHandler));
   }
 
-  static class CachedPreparedStatement implements Handler<CommandResponse<PreparedStatement>> {
-
-    private CommandResponse<PreparedStatement> resp;
-    private final ArrayDeque<Handler<? super CommandResponse<PreparedStatement>>> waiters = new ArrayDeque<>();
-
-    void get(Handler<? super CommandResponse<PreparedStatement>> handler) {
-      if (resp != null) {
-        handler.handle(resp);
-      } else {
-        waiters.add(handler);
-      }
-    }
-
-    @Override
-    public void handle(CommandResponse<PreparedStatement> event) {
-      resp = event;
-      Handler<? super CommandResponse<PreparedStatement>> waiter;
-      while ((waiter = waiters.poll()) != null) {
-        waiter.handle(resp);
-      }
-    }
-  }
-
   public boolean isSsl() {
     return socket.isSsl();
   }

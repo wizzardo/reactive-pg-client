@@ -17,8 +17,8 @@
 
 package io.reactiverse.pgclient.impl.codec.decoder;
 
+import io.reactiverse.pgclient.impl.Connection;
 import io.reactiverse.pgclient.shared.Future;
-import io.reactiverse.pgclient.impl.SocketConnection;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,10 +29,10 @@ import io.reactiverse.pgclient.impl.codec.decoder.type.MessageType;
 public class InitiateSslHandler extends ChannelInboundHandlerAdapter {
 
   private static final int code = 80877103;
-  private final SocketConnection conn;
+  private final Connection conn;
   private final Future<Void> upgradeFuture;
 
-  public InitiateSslHandler(SocketConnection conn, Future<Void> upgradeFuture) {
+  public InitiateSslHandler(Connection conn, Future<Void> upgradeFuture) {
     this.conn = conn;
     this.upgradeFuture = upgradeFuture;
   }

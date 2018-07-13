@@ -31,7 +31,7 @@ public class PrepareStatementCommand extends CommandBase<PreparedStatement> {
 
   final String sql;
   long statement; // 0 means unamed statement otherwise CString
-  SocketConnection.CachedPreparedStatement cached;
+  Connection.CachedPreparedStatement cached;
   private ParameterDescription parameterDesc;
   private RowDescription rowDesc;
 

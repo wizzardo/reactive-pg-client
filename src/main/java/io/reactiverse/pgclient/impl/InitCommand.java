@@ -33,7 +33,7 @@ import io.reactiverse.pgclient.shared.Handler;
 public class InitCommand extends CommandBase<Connection> {
 
   private static final String UTF8 = "UTF8";
-  private final SocketConnection conn;
+  private final Connection conn;
   private final String username;
   private final String password;
   private final String database;
@@ -41,7 +41,7 @@ public class InitCommand extends CommandBase<Connection> {
   private MessageEncoder out;
 
   InitCommand(
-    SocketConnection conn,
+    Connection conn,
     String username,
     String password,
     String database,

@@ -17,6 +17,10 @@
 
 package io.reactiverse.pgclient.impl;
 
+import io.reactiverse.pgclient.shared.Handler;
+
+import java.util.ArrayDeque;
+
 public interface Connection {
 
   void init(Holder holder);
@@ -26,6 +30,8 @@ public interface Connection {
   void schedule(CommandBase<?> cmd);
 
   void close(Holder holder);
+
+  void upgradeToSSL(Handler<Void> handler);
 
   interface Holder {
 
@@ -37,5 +43,28 @@ public interface Connection {
 
     void handleException(Throwable err);
 
+  }
+
+  class CachedPreparedStatement implements Handler<CommandResponse<PreparedStatement>> {
+
+    private CommandResponse<PreparedStatement> resp;
+    private final ArrayDeque<Handler<? super CommandResponse<PreparedStatement>>> waiters = new ArrayDeque<>();
+
+    void get(Handler<? super CommandResponse<PreparedStatement>> handler) {
+      if (resp != null) {
+        handler.handle(resp);
+      } else {
+        waiters.add(handler);
+      }
+    }
+
+    @Override
+    public void handle(CommandResponse<PreparedStatement> event) {
+      resp = event;
+      Handler<? super CommandResponse<PreparedStatement>> waiter;
+      while ((waiter = waiters.poll()) != null) {
+        waiter.handle(resp);
+      }
+    }
   }
 }

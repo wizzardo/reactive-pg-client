@@ -19,6 +19,7 @@ package io.reactiverse.pgclient.pool;
 
 import io.reactiverse.pgclient.impl.CommandBase;
 import io.reactiverse.pgclient.impl.Connection;
+import io.reactiverse.pgclient.shared.Handler;
 
 class SimpleConnection implements Connection {
 
@@ -38,6 +39,11 @@ class SimpleConnection implements Connection {
   @Override
   public void close(Holder holder) {
     closed++;
+  }
+
+  @Override
+  public void upgradeToSSL(Handler<Void> handler) {
+    throw new UnsupportedOperationException();
   }
 
   void close() {

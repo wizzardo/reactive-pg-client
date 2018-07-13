@@ -109,6 +109,11 @@ public class ConnectionPool {
     }
 
     @Override
+    public void upgradeToSSL(Handler<Void> handler) {
+      conn.upgradeToSSL(handler);
+    }
+
+    @Override
     public void handleClosed() {
       if (all.remove(this)) {
         size--;
