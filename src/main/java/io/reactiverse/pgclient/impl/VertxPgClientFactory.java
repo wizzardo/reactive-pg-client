@@ -8,28 +8,28 @@ public class VertxPgClientFactory {
      * Like {@link #pool(VertxPgPoolOptions)} with options build from the environment variables.
      */
     public static PgPool pool() {
-      return pool(PgPoolOptions.fromEnv());
+      return pool(VertxPgPoolOptions.fromEnv());
     }
 
     /**
      * Like {@link #pool(VertxPgPoolOptions)} with options build from {@code connectionUri}.
      */
     public static PgPool pool(String connectionUri) {
-      return pool(PgPoolOptions.fromUri(connectionUri));
+      return pool(VertxPgPoolOptions.fromUri(connectionUri));
     }
 
     /**
      * Like {@link #pool(Vertx, VertxPgPoolOptions)} with options build from the environment variables.
      */
     public static PgPool pool(Vertx vertx) {
-      return pool(vertx, PgPoolOptions.fromEnv());
+      return pool(vertx, VertxPgPoolOptions.fromEnv());
     }
 
     /**
      * Like {@link #pool(Vertx, VertxPgPoolOptions)} with options build from {@code connectionUri}.
      */
     public static PgPool pool(Vertx vertx, String connectionUri) {
-      return pool(vertx, PgPoolOptions.fromUri(connectionUri));
+      return pool(vertx, VertxPgPoolOptions.fromUri(connectionUri));
     }
 
     /**
@@ -74,7 +74,7 @@ public class VertxPgClientFactory {
         client.connect(ar -> {
           if (ar.succeeded()) {
             Connection conn = ar.result();
-            PgConnectionImpl p = new PgConnectionImpl(ctx, conn);
+            VertxPgConnection p = new VertxPgConnection(ctx, conn);
             conn.init(p);
             handler.handle(Future.succeededFuture(p));
           } else {

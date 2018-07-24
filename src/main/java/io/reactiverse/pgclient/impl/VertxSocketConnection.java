@@ -17,6 +17,7 @@
 
 package io.reactiverse.pgclient.impl;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.reactiverse.pgclient.impl.codec.decoder.MessageDecoder;
 import io.reactiverse.pgclient.impl.codec.decoder.InitiateSslHandler;
 import io.reactiverse.pgclient.impl.codec.encoder.MessageEncoder;
@@ -96,10 +97,11 @@ public class VertxSocketConnection implements Connection {
   }
 
   private void initiateProtocol(String username, String password, String database, Handler<? super CommandResponse<Connection>> completionHandler) {
-    decoder = new MessageDecoder(inflight, socket.channelHandlerContext().alloc());
-    encoder = new MessageEncoder(socket.channelHandlerContext());
+    ChannelHandlerContext ctx = socket.channelHandlerContext();
+    decoder = new MessageDecoder(inflight, ctx.alloc());
+    encoder = new MessageEncoder(byteBuf -> ctx.writeAndFlush(byteBuf), () -> ctx.alloc().ioBuffer());
 
-    ChannelPipeline pipeline = socket.channelHandlerContext().pipeline();
+    ChannelPipeline pipeline = ctx.pipeline();
     pipeline.addBefore("handler", "decoder", decoder);
 
     socket.closeHandler(this::handleClosed);

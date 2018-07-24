@@ -27,7 +27,7 @@ import io.vertx.core.Vertx;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class PgConnectionImpl extends PgClientBase<PgConnectionImpl> implements PgConnection, Connection.Holder {
+public class VertxPgConnection extends PgClientBase<VertxPgConnection> implements PgConnection, Connection.Holder {
 
   private final Context context;
   public final Connection conn;
@@ -36,7 +36,7 @@ public class PgConnectionImpl extends PgClientBase<PgConnectionImpl> implements 
   private Transaction tx;
   private volatile Handler<PgNotification> notificationHandler;
 
-  public PgConnectionImpl(Context context, Connection conn) {
+  public VertxPgConnection(Context context, Connection conn) {
     this.context = context;
     this.conn = conn;
   }

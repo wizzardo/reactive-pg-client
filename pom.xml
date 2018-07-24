@@ -79,6 +79,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.wizzardo</groupId>
+      <artifactId>epoll</artifactId>
+      <version>0.3.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
     </dependency>
@@ -398,6 +403,10 @@
         <repository>
           <id>rubygems-releases</id>
           <url>http://rubygems-proxy.torquebox.org/releases</url>
+        </repository>
+        <repository>
+          <id>sonatype</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </repository>
       </repositories>
       <build>

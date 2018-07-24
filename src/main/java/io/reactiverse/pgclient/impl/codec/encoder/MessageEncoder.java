@@ -17,7 +17,6 @@
 package io.reactiverse.pgclient.impl.codec.encoder;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 import io.reactiverse.pgclient.impl.codec.ColumnDesc;
 import io.reactiverse.pgclient.impl.codec.DataType;
 import io.reactiverse.pgclient.impl.codec.DataTypeCodec;
@@ -27,10 +26,11 @@ import io.reactiverse.pgclient.impl.codec.decoder.NoticeResponse;
 import io.reactiverse.pgclient.impl.codec.decoder.ParameterDescription;
 import io.reactiverse.pgclient.impl.codec.decoder.RowDescription;
 import io.reactiverse.pgclient.impl.codec.util.Util;
-import io.vertx.core.impl.NetSocketInternal;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static io.reactiverse.pgclient.impl.codec.util.Util.writeCString;
 
@@ -52,18 +52,20 @@ public final class MessageEncoder {
   private static final byte CLOSE = 'C';
   private static final byte SYNC = 'S';
 
-  private final ChannelHandlerContext ctx;
+  private final Consumer<ByteBuf> consumer;
+  private final Supplier<ByteBuf> allocator;
   private ByteBuf out;
 
-  public MessageEncoder(ChannelHandlerContext ctx) {
-    this.ctx = ctx;
+  public MessageEncoder(Consumer<ByteBuf> consumer, Supplier<ByteBuf> allocator) {
+    this.consumer = consumer;
+    this.allocator = allocator;
   }
 
   public void flush() {
     if (out != null) {
       ByteBuf buff = out;
       out = null;
-      ctx.writeAndFlush(buff);
+      consumer.accept(buff);
     }
   }
 
@@ -330,7 +332,7 @@ public final class MessageEncoder {
 
   private void ensureBuffer() {
     if (out == null) {
-      out = ctx.alloc().ioBuffer();
+      out = allocator.get();
     }
   }
 }
