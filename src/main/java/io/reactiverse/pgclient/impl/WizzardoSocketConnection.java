@@ -18,6 +18,7 @@
 package io.reactiverse.pgclient.impl;
 
 import com.wizzardo.epoll.ByteBufferProvider;
+import com.wizzardo.epoll.ByteBufferWrapper;
 import io.netty.buffer.*;
 import io.netty.util.ByteProcessor;
 import io.reactiverse.pgclient.impl.codec.ColumnDesc;
@@ -33,6 +34,7 @@ import io.reactiverse.pgclient.impl.codec.util.Util;
 import io.reactiverse.pgclient.shared.Handler;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -79,15 +81,41 @@ public class WizzardoSocketConnection implements Connection {
     private void initiateProtocol(String username, String password, String database, Handler<? super CommandResponse<Connection>> completionHandler) throws IOException {
         decoder = new MessageDecoder(socket, inflight, this::handleNotification, this::handleCommandResponse);
         encoder = new MessageEncoder(byteBuf -> {
-        }, () -> Unpooled.wrappedBuffer(new byte[65536]));
+          int length = byteBuf.readableBytes();
+          byte[] array = byteBuf.array();
+          int offset = byteBuf.arrayOffset();
+//          System.out.println("write offset: " + offset + ", length: " + length + ": " + new String(array, offset, length));
+//          System.out.println("write offset: " + offset + ", length: " + length);
+          socket.write(array, offset, length, getByteBufferProvider());
+        }, () -> Unpooled.wrappedBuffer(new byte[65536]).clear());
 
         socket.onRead((connection, byteBufferProvider) -> decoder.onRead(byteBufferProvider));
-        socket.onDisconnect((connection, byteBufferProvider) -> handleClose(null));
-        socket.onError((connection, e, byteBufferProvider) -> handleException(e));
+        socket.onDisconnect((connection, byteBufferProvider) -> {
+//          System.out.println("onDisconnect");
+          handleClose(null);
+        });
+        socket.onError((connection, e, byteBufferProvider) -> {
+//          System.out.println("onError");
+          e.printStackTrace();
+          handleException(e);
+        });
 
-        decoder.onRead(ByteBufferProvider.current());
+        decoder.onRead(getByteBufferProvider());
 
         schedule(new InitCommand(this, username, password, database, completionHandler));
+    }
+
+    static ThreadLocal<ByteBufferProvider> byteBufferProviderThreadLocal = ThreadLocal.withInitial(() -> {
+      ByteBufferWrapper byteBufferWrapper = new ByteBufferWrapper(ByteBuffer.allocateDirect(16384));
+      return (ByteBufferProvider) () -> byteBufferWrapper;
+    });
+
+    protected ByteBufferProvider getByteBufferProvider(){
+      if (Thread.currentThread() instanceof ByteBufferProvider)
+       return ByteBufferProvider.current();
+      else {
+        return byteBufferProviderThreadLocal.get();
+      }
     }
 
     public boolean isSsl() {
@@ -235,54 +263,58 @@ public class WizzardoSocketConnection implements Connection {
 //        }
 
         public void onRead(ByteBufferProvider bufferProvider) throws IOException {
+          while (true) {
             int read = socket.read(buffer, this.offset, buffer.length - offset, bufferProvider);
+            if (read == 0)
+              return;
 
             int limit = offset + read;
             ByteBuf in = Unpooled.wrappedBuffer(buffer, 0, limit);
 
             while (true) {
-                int available = in.readableBytes();
-                if (available < 5) {
+              int available = in.readableBytes();
+              if (available < 5) {
+                break;
+              }
+              int beginIdx = in.readerIndex();
+              int length = in.getInt(beginIdx + 1);
+              if (length + 1 > available) {
+                break;
+              }
+              byte id = in.getByte(beginIdx);
+              int endIdx = beginIdx + length + 1;
+              final int writerIndex = in.writerIndex();
+              try {
+                in.setIndex(beginIdx + 5, endIdx);
+                switch (id) {
+                  case MessageType.READY_FOR_QUERY: {
+                    decodeReadyForQuery(in);
                     break;
-                }
-                int beginIdx = in.readerIndex();
-                int length = in.getInt(beginIdx + 1);
-                if (length + 1 > available) {
+                  }
+                  case MessageType.DATA_ROW: {
+                    decodeDataRow(in);
                     break;
+                  }
+                  case MessageType.COMMAND_COMPLETE: {
+                    decodeCommandComplete(in);
+                    break;
+                  }
+                  case MessageType.BIND_COMPLETE: {
+                    decodeBindComplete();
+                    break;
+                  }
+                  default: {
+                    decodeMessage(id, in);
+                  }
                 }
-                byte id = in.getByte(beginIdx);
-                int endIdx = beginIdx + length + 1;
-                final int writerIndex = in.writerIndex();
-                try {
-                    in.setIndex(beginIdx + 5, endIdx);
-                    switch (id) {
-                        case MessageType.READY_FOR_QUERY: {
-                            decodeReadyForQuery(in);
-                            break;
-                        }
-                        case MessageType.DATA_ROW: {
-                            decodeDataRow(in);
-                            break;
-                        }
-                        case MessageType.COMMAND_COMPLETE: {
-                            decodeCommandComplete(in);
-                            break;
-                        }
-                        case MessageType.BIND_COMPLETE: {
-                            decodeBindComplete();
-                            break;
-                        }
-                        default: {
-                            decodeMessage(id, in);
-                        }
-                    }
-                } finally {
-                    in.setIndex(endIdx, writerIndex);
-                }
+              } finally {
+                in.setIndex(endIdx, writerIndex);
+              }
             }
             int available = in.readableBytes();
-            in.readBytes(buffer);
+            in.readBytes(buffer, 0, available);
             offset = available;
+          }
         }
 
         private void decodeMessage(byte id, ByteBuf in) {
@@ -403,7 +435,10 @@ public class WizzardoSocketConnection implements Connection {
         private void decodeError(ByteBuf in) {
             ErrorResponse response = new ErrorResponse();
             decodeErrorOrNotice(response, in);
-            inflight.peek().handleErrorResponse(response);
+//            System.out.println(response.toString());
+            CommandBase<?> peek = inflight.peek();
+            if (peek != null)
+              peek.handleErrorResponse(response);
         }
 
         private void decodeNotice(ByteBuf in) {

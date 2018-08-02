@@ -31,7 +31,7 @@ import java.io.IOException;
  */
 public class WizzardoPgConnectionFactory {
 
-    private EpollCore core;
+    private static EpollCore core;
 
     private final String host;
     private final int port;
@@ -42,10 +42,13 @@ public class WizzardoPgConnectionFactory {
     private final int pipeliningLimit;
     private final boolean isUsingDomainSocket;
 
+    static {
+      core = new EpollCore();
+      core.setDaemon(true);
+      core.start();
+    }
+
     public WizzardoPgConnectionFactory(WizzardoPgConnectOptions options) {
-
-        core = new EpollCore();
-
         this.host = options.getHost();
         this.port = options.getPort();
         this.database = options.getDatabase();

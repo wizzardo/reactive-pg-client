@@ -36,6 +36,9 @@ public class WizzardoPgPoolOptions extends WizzardoPgConnectOptions implements P
     super(other);
     maxSize = other.maxSize;
   }
+  public WizzardoPgPoolOptions(WizzardoPgConnectOptions other) {
+    super(other);
+  }
 
   @Override
   public int getMaxSize() {
