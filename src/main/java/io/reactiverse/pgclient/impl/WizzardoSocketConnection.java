@@ -19,7 +19,9 @@ package io.reactiverse.pgclient.impl;
 
 import com.wizzardo.epoll.ByteBufferProvider;
 import com.wizzardo.epoll.ByteBufferWrapper;
-import io.netty.buffer.*;
+import com.wizzardo.epoll.readable.ReadableByteArray;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
 import io.reactiverse.pgclient.impl.codec.ColumnDesc;
 import io.reactiverse.pgclient.impl.codec.DataFormat;
@@ -35,10 +37,7 @@ import io.reactiverse.pgclient.shared.Handler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -59,6 +58,7 @@ public class WizzardoSocketConnection implements Connection {
     private final int pipeliningLimit;
     private MessageDecoder decoder;
     private MessageEncoder encoder;
+    protected LinkedList<byte[]> buffers = new LinkedList<>();
 
     public WizzardoSocketConnection(com.wizzardo.epoll.Connection socket,
                                     boolean cachePreparedStatements,
@@ -86,8 +86,19 @@ public class WizzardoSocketConnection implements Connection {
           int offset = byteBuf.arrayOffset();
 //          System.out.println("write offset: " + offset + ", length: " + length + ": " + new String(array, offset, length));
 //          System.out.println("write offset: " + offset + ", length: " + length);
-          socket.write(array, offset, length, getByteBufferProvider());
-        }, () -> Unpooled.wrappedBuffer(new byte[65536]).clear());
+          ReadableByteArray byteArray = new ReadableByteArray(array, offset, length) {
+            @Override
+            public void onComplete() {
+              buffers.add(array);
+            }
+          };
+          socket.write(byteArray, getByteBufferProvider());
+        }, () -> {
+          byte[] bytes = buffers.poll();
+          if (bytes == null)
+            bytes = new byte[65536];
+          return Unpooled.wrappedBuffer(bytes).clear();
+        });
 
         socket.onRead((connection, byteBufferProvider) -> decoder.onRead(byteBufferProvider));
         socket.onDisconnect((connection, byteBufferProvider) -> {
