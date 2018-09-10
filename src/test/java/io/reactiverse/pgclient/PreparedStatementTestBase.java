@@ -20,6 +20,7 @@ package io.reactiverse.pgclient;
 import io.reactiverse.pgclient.impl.PgClientFactory;
 import io.reactiverse.pgclient.impl.codec.util.Util;
 import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
+import io.reactiverse.pgclient.shared.Handler;
 import io.vertx.core.Vertx;
 import org.junit.After;
 import org.junit.Before;
@@ -146,7 +147,7 @@ public abstract class PreparedStatementTestBase extends PgTestBase {
 
   private void testValidationError(TestContext ctx, BiConsumer<PgConnection, Handler<Throwable>> test) {
     Async async = ctx.async();
-    pgClientFactory.connect(options(), options(), ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       test.accept(conn, failure -> {
         ctx.assertEquals(Util.buildInvalidArgsError(Stream.of("invalid-id"), Stream.of(Integer.class)), failure.getMessage());
         async.complete();

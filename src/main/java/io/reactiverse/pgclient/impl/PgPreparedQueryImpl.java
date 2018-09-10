@@ -19,6 +19,7 @@ package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.*;
 import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Context;
 import io.reactiverse.pgclient.shared.Future;
 import io.reactiverse.pgclient.shared.Handler;
 
@@ -63,7 +64,7 @@ class PgPreparedQueryImpl implements PgPreparedQuery {
     return execute(args, 0, null, false, singleton, collector, b, b);
   }
 
-  <A, R> PgPreparedQuery execute(Tuple args,
+  public <A, R> PgPreparedQuery execute(Tuple args,
                                  int fetch,
                                  String portal,
                                  boolean suspended,
@@ -71,7 +72,7 @@ class PgPreparedQueryImpl implements PgPreparedQuery {
                                  Collector<Row, A, R> collector,
                                  QueryResultHandler<R> resultHandler,
                                  Handler<AsyncResult<Boolean>> handler) {
-    if (context == Vertx.currentContext()) {
+    if (context.isCurrent()) {
       String msg = ps.prepare((List<Object>) args);
       if (msg != null) {
         handler.handle(Future.failedFuture(msg));
@@ -149,7 +150,7 @@ class PgPreparedQueryImpl implements PgPreparedQuery {
     }
   }
 
-  void closePortal(String portal, Handler<AsyncResult<Void>> handler) {
+  public void closePortal(String portal, Handler<AsyncResult<Void>> handler) {
     conn.schedule(new ClosePortalCommand(portal, handler));
   }
 

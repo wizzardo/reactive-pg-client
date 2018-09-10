@@ -109,11 +109,12 @@ public class VertxPgConnection extends PgClientBase<VertxPgConnection> implement
     return begin(false);
   }
 
-  PgTransaction begin(boolean closeOnEnd) {
+  @Override
+  public PgTransaction begin(boolean closeOnEnd) {
     if (tx != null) {
       throw new IllegalStateException();
     }
-    tx = new Transaction(h -> context.runOnContext(h::handle), conn, v -> {
+    tx = new Transaction(new VertxContext(context), conn, v -> {
       tx = null;
       if (closeOnEnd) {
         close();
@@ -147,11 +148,29 @@ public class VertxPgConnection extends PgClientBase<VertxPgConnection> implement
   public PgConnection prepare(String sql, Handler<AsyncResult<PgPreparedQuery>> handler) {
     schedule(new PrepareStatementCommand(sql, ar -> {
       if (ar.succeeded()) {
-        handler.handle(Future.succeededFuture(new PgPreparedQueryImpl(conn, context, ar.result())));
+        handler.handle(Future.succeededFuture(new PgPreparedQueryImpl(conn, new VertxContext(context), ar.result())));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }
     }));
     return this;
+  }
+
+  static class VertxContext implements io.reactiverse.pgclient.shared.Context{
+    final Context context;
+
+    VertxContext(Context context) {
+      this.context = context;
+    }
+
+    @Override
+    public void runOnContext(Handler<Void> h) {
+      context.runOnContext(h::handle);
+    }
+
+    @Override
+    public boolean isCurrent() {
+      return context == Vertx.currentContext();
+    }
   }
 }

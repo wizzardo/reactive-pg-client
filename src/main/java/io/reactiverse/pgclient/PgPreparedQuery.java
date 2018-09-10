@@ -17,6 +17,7 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.impl.QueryResultHandler;
 import io.reactiverse.pgclient.shared.AsyncResult;
 import io.reactiverse.pgclient.impl.ArrayTuple;
 import io.vertx.codegen.annotations.Fluent;
@@ -126,4 +127,14 @@ public interface PgPreparedQuery {
    */
   void close(Handler<AsyncResult<Void>> completionHandler);
 
+  <A, R> PgPreparedQuery execute(Tuple args,
+                                 int fetch,
+                                 String portal,
+                                 boolean suspended,
+                                 boolean singleton,
+                                 Collector<Row, A, R> collector,
+                                 QueryResultHandler<R> resultHandler,
+                                 Handler<AsyncResult<Boolean>> handler);
+
+  void closePortal(String portal, Handler<AsyncResult<Void>> completionHandler);
 }

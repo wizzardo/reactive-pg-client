@@ -16,12 +16,9 @@
  */
 package io.reactiverse.pgclient;
 
-import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.impl.PgClientFactory;
 import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,27 +28,29 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-@RunWith(VertxUnitRunner.class)
+@RunWith(ReactiverseUnitRunner.class)
 public class RowTest extends PgTestBase {
 
   Vertx vertx;
+  PgClientFactory pgClientFactory;
 
   @Before
   public void setup() {
     vertx = Vertx.vertx();
+    pgClientFactory = PgClientFactory.vertx(vertx);
   }
 
   @After
   public void teardown(TestContext ctx) {
-    vertx.close(ctx.asyncAssertSuccess());
+    vertx.close(ar -> ctx.<Void>asyncAssertSuccess().handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
   public void testGetNonExistingRows(TestContext ctx) {
     Async async = ctx.async();
-    VertxPgClientFactory.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options, ctx.asyncAssertSuccess(conn -> {
       conn.query("SELECT 1 \"foo\"",
-              AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+        ctx.asyncAssertSuccess(result -> {
           Row row = result.iterator().next();
           List<Function<String, ?>> functions = Arrays.asList(
             row::getValue,
@@ -99,14 +98,14 @@ public class RowTest extends PgTestBase {
             }
           });
           async.complete();
-        })));
+        }));
     }));
   }
 
   @Test
   public void testGetColumnNameRows(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options, ctx.asyncAssertSuccess(conn -> {
       conn.query("SELECT 2 \"foo\"",
         ctx.asyncAssertSuccess(result -> {
           Row row = result.iterator().next();
@@ -119,7 +118,7 @@ public class RowTest extends PgTestBase {
   @Test
   public void testNotEqualGetColumnNameRows(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options, ctx.asyncAssertSuccess(conn -> {
       conn.query("SELECT 2 \"foo\"",
         ctx.asyncAssertSuccess(result -> {
           Row row = result.iterator().next();
@@ -132,7 +131,7 @@ public class RowTest extends PgTestBase {
   @Test
   public void testNegativeGetColumnNameRows(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options, ctx.asyncAssertSuccess(conn -> {
       conn.query("SELECT 2 \"foo\"",
         ctx.asyncAssertSuccess(result -> {
           Row row = result.iterator().next();
@@ -145,7 +144,7 @@ public class RowTest extends PgTestBase {
   @Test
   public void testPreventLengthMaxIndexOutOfBoundGetColumnNameRows(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options, ctx.asyncAssertSuccess(conn -> {
       conn.query("SELECT 2 \"foo\"",
         ctx.asyncAssertSuccess(result -> {
           Row row = result.iterator().next();

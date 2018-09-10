@@ -17,10 +17,10 @@
 
 package io.reactiverse.pgclient;
 
-import io.vertx.core.*;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
+import io.reactiverse.pgclient.shared.Handler;
+import io.vertx.core.Vertx;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,14 +28,13 @@ import org.junit.runner.RunWith;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 
-@RunWith(VertxUnitRunner.class)
+@RunWith(ReactiverseUnitRunner.class)
 public abstract class PgClientTestBase<C extends PgClient> extends PgTestBase {
 
   Vertx vertx;
@@ -45,12 +44,12 @@ public abstract class PgClientTestBase<C extends PgClient> extends PgTestBase {
   @Before
   public void setup() {
     vertx = Vertx.vertx();
-    options = new PgConnectOptions(PgTestBase.options);
+    options = new VertxPgConnectOptions(PgTestBase.options);
   }
 
   @After
   public void teardown(TestContext ctx) {
-    vertx.close(ctx.asyncAssertSuccess());
+    vertx.close(ar -> ctx.<Void>asyncAssertSuccess().handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
@@ -247,10 +246,10 @@ public abstract class PgClientTestBase<C extends PgClient> extends PgTestBase {
         conn.clientSocket().close();
       });
     });
-    proxy.listen(8080, "localhost", ctx.asyncAssertSuccess(v1 -> {
+    proxy.listen(8080, "localhost", ar -> ctx.<Void>asyncAssertSuccess(v1 -> {
       options.setPort(8080).setHost("localhost");
       connector.accept(ctx.asyncAssertFailure(err -> async.complete()));
-    }));
+    }).handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test

@@ -19,6 +19,7 @@ package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.PgConnection;
 import io.reactiverse.pgclient.PgPool;
+import io.reactiverse.pgclient.PgTransaction;
 import io.reactiverse.pgclient.shared.AsyncResult;
 import io.reactiverse.pgclient.shared.Future;
 import io.reactiverse.pgclient.shared.Handler;
@@ -51,7 +52,20 @@ public class WizzardoPgPool extends PgClientBase<WizzardoPgPool> implements PgPo
         pool.acquire(new ConnectionWaiter(handler));
     }
 
-    @Override
+  @Override
+  public void begin(Handler<AsyncResult<PgTransaction>> handler) {
+    getConnection(ar -> {
+      if (ar.succeeded()) {
+        WizzardoPgConnection conn = (WizzardoPgConnection) ar.result();
+        PgTransaction tx = conn.begin(true);
+        handler.handle(Future.succeededFuture(tx));
+      } else {
+        handler.handle(Future.failedFuture(ar.cause()));
+      }
+    });
+  }
+
+  @Override
     protected void schedule(CommandBase<?> cmd) {
         pool.acquire(new CommandWaiter() {
             @Override

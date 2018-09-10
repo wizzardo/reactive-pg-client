@@ -21,7 +21,7 @@ import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
 import de.flapdoodle.embed.process.runtime.ICommandLinePostProcessor;
 import de.flapdoodle.embed.process.store.IArtifactStore;
-import io.vertx.ext.unit.TestContext;
+import io.reactiverse.pgclient.impl.VertxPgConnectOptionsFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
@@ -65,7 +65,7 @@ public abstract class PgTestBase {
 
   public synchronized static VertxPgConnectOptions startPg(boolean domainSockets) throws Exception {
     if (connectionUri != null && !connectionUri.isEmpty()) {
-      return VertxPgConnectOptions.fromUri(connectionUri);
+      return VertxPgConnectOptionsFactory.fromUri(connectionUri);
     }
     if (postgres != null) {
       throw new IllegalStateException();

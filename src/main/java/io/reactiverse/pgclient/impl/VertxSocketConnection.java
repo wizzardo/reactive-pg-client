@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class VertxSocketConnection implements Connection {
 
-  private static final Logger logger = LoggerFactory.getLogger(SocketConnection.class);
+  private static final Logger logger = LoggerFactory.getLogger(VertxSocketConnection.class);
 
   enum Status {
 

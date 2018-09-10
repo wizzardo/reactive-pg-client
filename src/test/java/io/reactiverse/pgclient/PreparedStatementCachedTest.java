@@ -28,7 +28,7 @@ public class PreparedStatementCachedTest extends PreparedStatementTestBase {
 
   @Test
   public void testConcurrent(TestContext ctx) {
-    pgClientFactory.connect(options()options(), ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       Async[] asyncs = new Async[10];
       for (int i = 0;i < 10;i++) {
         asyncs[i] = ctx.async();

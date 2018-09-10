@@ -40,7 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 
-@RunWith(ReactiverseUnitRunner.class)
 public abstract class PgConnectionTestBase extends PgClientTestBase<PgConnection> {
 
   @Test

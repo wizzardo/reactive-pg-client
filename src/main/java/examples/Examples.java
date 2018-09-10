@@ -619,7 +619,7 @@ public class Examples {
 
   public void pubsub04(Vertx vertx) {
 
-    PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new PgConnectOptions()
+    PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new VertxPgConnectOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")

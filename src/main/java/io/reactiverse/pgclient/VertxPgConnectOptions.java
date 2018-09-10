@@ -69,6 +69,7 @@ public class VertxPgConnectOptions extends NetClientOptions implements PgConnect
     user = other.user;
     password = other.password;
     pipeliningLimit = other.pipeliningLimit;
+    cachePreparedStatements = other.cachePreparedStatements;
   }
 
   @Override

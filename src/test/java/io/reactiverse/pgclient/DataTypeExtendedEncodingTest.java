@@ -75,7 +75,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeEnum(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"currentMood\" FROM \"EnumDataType\" WHERE \"id\" = $1",
         ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
@@ -96,7 +96,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testEncodeEnum(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"EnumDataType\" SET \"currentMood\" = $1  WHERE \"id\" = $2 RETURNING \"currentMood\"",
         ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
@@ -818,7 +818,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeInterval(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Interval\" FROM \"TemporalDataType\" WHERE \"id\" = $1",
         ctx.asyncAssertSuccess(p -> {
           // 10 years 3 months 332 days 20 hours 20 minutes 20.999999 seconds
@@ -847,7 +847,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testEncodeInterval(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"TemporalDataType\" SET \"Interval\" = $1 WHERE \"id\" = $2 RETURNING \"Interval\"",
         ctx.asyncAssertSuccess(p -> {
           // 2000 years 1 months 403 days 59 hours 35 minutes 13.999998 seconds
@@ -1700,7 +1700,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   public void testDecodeEnumArray(TestContext ctx) {
     final String[] expected = new String[]{"ok", "unhappy", "happy"};
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Enum\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
         ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
@@ -1718,7 +1718,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testEncodeEnumArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Enum\" = $1 WHERE \"id\" = $2 RETURNING \"Enum\"",
         ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
@@ -2059,7 +2059,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeIntervalArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("SELECT \"Interval\" FROM \"ArrayDataType\" WHERE \"id\" = $1",
         ctx.asyncAssertSuccess(p -> {
           p.execute(Tuple.tuple()
@@ -2077,7 +2077,7 @@ public class DataTypeExtendedEncodingTest extends DataTypeTestBase {
   @Test
   public void testEncodeIntervalArray(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.prepare("UPDATE \"ArrayDataType\" SET \"Interval\" = $1  WHERE \"id\" = $2 RETURNING \"Interval\"",
         ctx.asyncAssertSuccess(p -> {
           Interval[] intervals = new Interval[] {

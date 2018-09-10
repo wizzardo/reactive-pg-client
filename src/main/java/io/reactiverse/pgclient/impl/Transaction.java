@@ -49,7 +49,7 @@ class Transaction extends PgClientBase<Transaction> implements PgTransaction {
   }
 
   private void doSchedule(CommandBase<?> cmd) {
-    if (context == Vertx.currentContext()) {
+    if (context.isCurrent()) {
       conn.schedule(cmd);
     } else {
       context.runOnContext(v -> conn.schedule(cmd));
@@ -94,7 +94,7 @@ class Transaction extends PgClientBase<Transaction> implements PgTransaction {
         break;
       case ST_COMPLETED: {
         if (pending.size() > 0) {
-          VertxException err = new VertxException("Transaction already completed");
+          IllegalStateException err = new IllegalStateException("Transaction already completed");
           CommandBase<?> cmd;
           while ((cmd = pending.poll()) != null) {
             cmd.fail(err);

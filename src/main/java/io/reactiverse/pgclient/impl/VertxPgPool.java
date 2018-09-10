@@ -69,7 +69,7 @@ public class VertxPgPool extends PgClientBase<VertxPgPool> implements PgPool {
   public void begin(Handler<AsyncResult<PgTransaction>> handler) {
     getConnection(ar -> {
       if (ar.succeeded()) {
-        PgConnectionImpl conn = (PgConnectionImpl) ar.result();
+        VertxPgConnection conn = (VertxPgConnection) ar.result();
         PgTransaction tx = conn.begin(true);
         handler.handle(Future.succeededFuture(tx));
       } else {

@@ -17,9 +17,8 @@
 package io.reactiverse.pgclient;
 
 import io.reactiverse.pgclient.impl.PgClientFactory;
-import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.impl.pubsub.VertxPgSubscriberImpl;
 import io.reactiverse.pgclient.pubsub.PgSubscriber;
-import io.reactiverse.pgclient.impl.pubsub.PgSubscriberImpl;
 import io.reactiverse.pgclient.pubsub.PgChannel;
 import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.Vertx;
@@ -130,9 +129,9 @@ public class PubSubTest extends PgTestBase {
 
   @Test
   public void testSubscribeChannelExceedsLengthLimit(TestContext ctx) {
-	char[] channelNameChars = new char[PgSubscriberImpl.MAX_CHANNEL_NAME_LENGTH + 5];
-	Arrays.fill(channelNameChars, 0, PgSubscriberImpl.MAX_CHANNEL_NAME_LENGTH, 'a');
-	Arrays.fill(channelNameChars, PgSubscriberImpl.MAX_CHANNEL_NAME_LENGTH,
+	char[] channelNameChars = new char[VertxPgSubscriberImpl.MAX_CHANNEL_NAME_LENGTH + 5];
+	Arrays.fill(channelNameChars, 0, VertxPgSubscriberImpl.MAX_CHANNEL_NAME_LENGTH, 'a');
+	Arrays.fill(channelNameChars, VertxPgSubscriberImpl.MAX_CHANNEL_NAME_LENGTH,
 			channelNameChars.length, 'b');
 	String channelName = new String(channelNameChars);
     testSubscribe(ctx, channelName);

@@ -16,8 +16,7 @@
  */
 package io.reactiverse.pgclient;
 
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
+import io.reactiverse.pgclient.impl.VertxPgClientFactory;
 import org.junit.Test;
 
 public class PgTransactionTest extends PgClientTestBase<PgTransaction> {
@@ -27,7 +26,7 @@ public class PgTransactionTest extends PgClientTestBase<PgTransaction> {
   public PgTransactionTest() {
     connector = handler -> {
       if (pool == null) {
-        pool = PgClient.pool(vertx, new PgPoolOptions(options).setMaxSize(1));
+        pool = VertxPgClientFactory.pool(vertx, new VertxPgPoolOptions((VertxPgConnectOptions) options).setMaxSize(1));
       }
       pool.begin(handler);
     };

@@ -72,6 +72,8 @@ public interface PgConnection extends PgClient {
    */
   PgTransaction begin();
 
+  PgTransaction begin(boolean closeOnEnd);
+
   /**
    * Set an handler called when the connection receives notification on a channel.
    * <p/>

@@ -346,41 +346,6 @@ create easily create a string directly from the row set:
 {@link examples.Examples#collector02Example}
 ```
 
-## RxJava support
-
-The rxified API supports RxJava 1 and RxJava 2, the following examples use RxJava 2.
-
-Most asynchronous constructs are available as methods prefixed by `rx`:
-
-```$lang
-{@link examples.RxExamples#simpleQuery01Example}
-```
-
-
-### Streaming
-
-RxJava 2 supports `Observable` and `Flowable` types, these are exposed using
-the {@link io.reactiverse.reactivex.pgclient.PgStream} that you can get
-from a {@link io.reactiverse.reactivex.pgclient.PgPreparedQuery}:
-
-```$lang
-{@link examples.RxExamples#streamingQuery01Example}
-```
-
-The same example using `Flowable`:
-
-```$lang
-{@link examples.RxExamples#streamingQuery02Example}
-```
-
-### Transaction
-
-The simplified transaction API allows to easily write transactional
-asynchronous flows:
-
-```$lang
-{@link examples.RxExamples#transaction01Example}
-```
 
 ## Pub/sub
 

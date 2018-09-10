@@ -97,11 +97,21 @@ public class WizzardoPgConnection extends PgClientBase<WizzardoPgConnection> imp
 
     @Override
     public PgTransaction begin() {
-        if (tx != null) {
-            throw new IllegalStateException();
+      return begin(false);
+    }
+
+    @Override
+    public PgTransaction begin(boolean closeOnEnd) {
+      if (tx != null) {
+        throw new IllegalStateException();
+      }
+      tx = new Transaction(h -> h.handle(null), conn, v -> {
+        tx = null;
+        if (closeOnEnd) {
+          close();
         }
-        tx = new Transaction(h -> h.handle(null), conn, v -> tx = null);
-        return tx;
+      });
+      return tx;
     }
 
     public void handleNotification(int processId, String channel, String payload) {
@@ -125,7 +135,7 @@ public class WizzardoPgConnection extends PgClientBase<WizzardoPgConnection> imp
     public PgConnection prepare(String sql, Handler<AsyncResult<PgPreparedQuery>> handler) {
         schedule(new PrepareStatementCommand(sql, ar -> {
             if (ar.succeeded()) {
-                handler.handle(Future.succeededFuture(new PgPreparedQueryImpl(conn, ar.result())));
+                handler.handle(Future.succeededFuture(new PgPreparedQueryImpl(conn, h -> h.handle(null), ar.result())));
             } else {
                 handler.handle(Future.failedFuture(ar.cause()));
             }

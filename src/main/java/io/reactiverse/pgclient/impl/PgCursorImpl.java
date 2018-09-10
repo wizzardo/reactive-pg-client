@@ -29,14 +29,14 @@ import java.util.*;
  */
 public class PgCursorImpl implements PgCursor {
 
-  private final PgPreparedQueryImpl ps;
+  private final PgPreparedQuery ps;
   private final Tuple params;
 
   private String portal;
   private boolean closed;
   private PgResultBuilder<PgRowSet, PgRowSetImpl, PgRowSet> result;
 
-  PgCursorImpl(PgPreparedQueryImpl ps, Tuple params) {
+  PgCursorImpl(PgPreparedQuery ps, Tuple params) {
     this.ps = ps;
     this.params = params;
   }

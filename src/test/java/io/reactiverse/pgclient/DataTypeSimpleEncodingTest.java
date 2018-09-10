@@ -351,7 +351,7 @@ public class DataTypeSimpleEncodingTest extends DataTypeTestBase {
   @Test
   public void testEnum(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn
         .query("SELECT \"currentMood\" FROM \"EnumDataType\" WHERE \"id\" = 5", ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(1, result.size());
@@ -482,7 +482,7 @@ public class DataTypeSimpleEncodingTest extends DataTypeTestBase {
   @Test
   public void testInterval(TestContext ctx) {
     Async async = ctx.async();
-    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.query("SELECT '10 years 3 months 332 days 20 hours 20 minutes 20.999991 seconds'::INTERVAL \"Interval\"",
           ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(1, result.size());

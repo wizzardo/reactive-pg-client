@@ -22,8 +22,50 @@
 |[[years]]`years`|`Number (int)`|-
 |===
 
-[[PgConnectOptions]]
-== PgConnectOptions
+[[PgNotification]]
+== PgNotification
+
+++++
+ A notification emited by Postgres.
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[channel]]`channel`|`String`|
++++
+Set the channel value.
++++
+|[[payload]]`payload`|`String`|
++++
+Set the payload value.
++++
+|[[processId]]`processId`|`Number (int)`|
++++
+Set the process id.
++++
+|===
+
+[[Point]]
+== Point
+
+++++
+ A Postgresql point.
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[x]]`x`|`Number (double)`|-
+|[[y]]`y`|`Number (double)`|-
+|===
+
+[[VertxPgConnectOptions]]
+== VertxPgConnectOptions
 
 ++++
 ++++
@@ -79,34 +121,8 @@
 |[[usingDomainSocket]]`usingDomainSocket`|`Boolean`|-
 |===
 
-[[PgNotification]]
-== PgNotification
-
-++++
- A notification emited by Postgres.
-++++
-'''
-
-[cols=">25%,^25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[channel]]`channel`|`String`|
-+++
-Set the channel value.
-+++
-|[[payload]]`payload`|`String`|
-+++
-Set the payload value.
-+++
-|[[processId]]`processId`|`Number (int)`|
-+++
-Set the process id.
-+++
-|===
-
-[[PgPoolOptions]]
-== PgPoolOptions
+[[VertxPgPoolOptions]]
+== VertxPgPoolOptions
 
 ++++
  The options for configuring a connection pool.
@@ -162,21 +178,5 @@ Set the process id.
 |[[usePooledBuffers]]`usePooledBuffers`|`Boolean`|-
 |[[user]]`user`|`String`|-
 |[[usingDomainSocket]]`usingDomainSocket`|`Boolean`|-
-|===
-
-[[Point]]
-== Point
-
-++++
- A Postgresql point.
-++++
-'''
-
-[cols=">25%,^25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[x]]`x`|`Number (double)`|-
-|[[y]]`y`|`Number (double)`|-
 |===
 

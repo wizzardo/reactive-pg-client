@@ -18,14 +18,14 @@
 package io.reactiverse.pgclient.impl;
 
 import io.reactiverse.pgclient.*;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.reactiverse.pgclient.shared.AsyncResult;
+import io.reactiverse.pgclient.shared.Handler;
 
 import java.util.Iterator;
 
 public class PgStreamImpl implements PgStream<Row>, Handler<AsyncResult<PgRowSet>> {
 
-  private final PgPreparedQueryImpl ps;
+  private final PgPreparedQuery ps;
   private final int fetch;
   private final Tuple params;
 
@@ -38,7 +38,7 @@ public class PgStreamImpl implements PgStream<Row>, Handler<AsyncResult<PgRowSet
 
   private Iterator<Row> result;
 
-  PgStreamImpl(PgPreparedQueryImpl ps, int fetch, Tuple params) {
+  PgStreamImpl(PgPreparedQuery ps, int fetch, Tuple params) {
     this.ps = ps;
     this.fetch = fetch;
     this.params = params;
