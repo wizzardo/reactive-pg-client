@@ -19,9 +19,6 @@ package io.reactiverse.pgclient;
 
 import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@RunWith(VertxUnitRunner.class)
+@RunWith(ReactiverseUnitRunner.class)
 public abstract class PgPoolTestBase extends PgTestBase {
 
   Vertx vertx;
@@ -44,7 +41,7 @@ public abstract class PgPoolTestBase extends PgTestBase {
 
   @After
   public void teardown(TestContext ctx) {
-    vertx.close(ctx.asyncAssertSuccess());
+    vertx.close(ar -> ctx.<Void>asyncAssertSuccess().handle(AsyncResultVertxConverter.from(ar)));
   }
 
   protected abstract PgPool createPool(VertxPgConnectOptions options, int size);
@@ -55,7 +52,7 @@ public abstract class PgPoolTestBase extends PgTestBase {
     Async async = ctx.async(num);
     PgPool pool = createPool(options, 4);
     for (int i = 0;i < num;i++) {
-      pool.getConnection(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(conn -> {
+      pool.getConnection(ctx.asyncAssertSuccess(conn -> {
         conn.query("SELECT id, randomnumber from WORLD", ar -> {
           if (ar.succeeded()) {
             PgResult result = ar.result();
@@ -66,7 +63,7 @@ public abstract class PgPoolTestBase extends PgTestBase {
           conn.close();
           async.countDown();
         });
-      })));
+      }));
     }
   }
 
@@ -152,20 +149,20 @@ public abstract class PgPoolTestBase extends PgTestBase {
       proxyConn.set(conn);
       conn.connect();
     });
-    proxy.listen(8080, "localhost", ctx.asyncAssertSuccess(v1 -> {
+    proxy.listen(8080, "localhost", ar -> ctx.<Void>asyncAssertSuccess(v1 -> {
       PgPool pool = createPool(new VertxPgConnectOptions(options).setPort(8080).setHost("localhost"), 1);
-      pool.getConnection(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(conn1 -> {
+      pool.getConnection(ctx.asyncAssertSuccess(conn1 -> {
         proxyConn.get().close();
         conn1.closeHandler(v2 -> {
-          conn1.query("never-read", AsyncResultVertxConverter.from(ctx.asyncAssertFailure(err -> {
-            pool.getConnection(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(conn2 -> {
-              conn2.query("SELECT id, randomnumber from WORLD", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v3 -> {
+          conn1.query("never-read", ctx.asyncAssertFailure(err -> {
+            pool.getConnection(ctx.asyncAssertSuccess(conn2 -> {
+              conn2.query("SELECT id, randomnumber from WORLD", ctx.asyncAssertSuccess(v3 -> {
                 async.complete();
-              })));
-            })));
-          })));
+              }));
+            }));
+          }));
         });
-      })));
-    }));
+      }));
+    }).handle(AsyncResultVertxConverter.from(ar)));
   }
 }

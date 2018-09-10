@@ -19,8 +19,6 @@ package io.reactiverse.pgclient;
 
 import io.reactiverse.pgclient.impl.VertxPgClientFactory;
 import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,17 +42,17 @@ public class PgPoolTest extends PgPoolTestBase {
       proxyConn.set(conn);
       conn.connect();
     });
-    proxy.listen(8080, "localhost", ctx.asyncAssertSuccess(v1 -> {
+    proxy.listen(8080, "localhost", ar -> ctx.<Void>asyncAssertSuccess(v1 -> {
       PgPool pool = createPool(new VertxPgConnectOptions(options).setPort(8080).setHost("localhost"), 1);
-      pool.getConnection(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(conn -> {
+      pool.getConnection(ctx.asyncAssertSuccess(conn -> {
         proxyConn.get().close();
-      })));
-      pool.getConnection(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(conn -> {
-        conn.query("SELECT id, randomnumber from WORLD", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v2 -> {
+      }));
+      pool.getConnection(ctx.asyncAssertSuccess(conn -> {
+        conn.query("SELECT id, randomnumber from WORLD", ctx.asyncAssertSuccess(v2 -> {
           async.complete();
-        })));
-      })));
-    }));
+        }));
+      }));
+    }).handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
@@ -75,9 +73,9 @@ public class PgPoolTest extends PgPoolTestBase {
     Async async = ctx.async();
     PgPool pool = VertxPgClientFactory.pool(new VertxPgPoolOptions(options));
     try {
-      pool.query("SELECT id, randomnumber from WORLD", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
+      pool.query("SELECT id, randomnumber from WORLD", ctx.asyncAssertSuccess(v -> {
         async.complete();
-      })));
+      }));
       async.await(4000);
     } finally {
       pool.close();
