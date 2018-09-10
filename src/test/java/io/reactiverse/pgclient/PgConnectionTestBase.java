@@ -17,12 +17,13 @@
 
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.shared.AsyncResult;
 import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
-import io.vertx.core.*;
+import io.reactiverse.pgclient.shared.Handler;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.core.Vertx;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,12 +43,12 @@ import java.util.function.Consumer;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 
-@RunWith(VertxUnitRunner.class)
+@RunWith(ReactiverseUnitRunner.class)
 public abstract class PgConnectionTestBase extends PgTestBase {
 
   Vertx vertx;
   Consumer<Handler<AsyncResult<PgConnection>>> connector;
-  VertxPgConnectOptions options;
+  PgConnectOptions options;
 
   @Before
   public void setup() {
@@ -57,7 +58,7 @@ public abstract class PgConnectionTestBase extends PgTestBase {
 
   @After
   public void teardown(TestContext ctx) {
-    vertx.close(ctx.asyncAssertSuccess());
+    vertx.close(ar -> ctx.<Void>asyncAssertSuccess().handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
@@ -102,7 +103,7 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testQuery(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("SELECT id, randomnumber from WORLD", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.query("SELECT id, randomnumber from WORLD", ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(10000, result.size());
         Iterator<Row> it = result.iterator();
         for (int i = 0; i < 10000; i++) {
@@ -114,7 +115,7 @@ public abstract class PgConnectionTestBase extends PgTestBase {
           ctx.assertEquals(row.getValue("randomnumber"), row.getValue(1));
         }
         async.complete();
-      })));
+      }));
     }));
   }
 
@@ -122,7 +123,7 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testMultipleQuery(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("SELECT id, message from FORTUNE LIMIT 1;SELECT message, id from FORTUNE LIMIT 1", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result1 -> {
+      conn.query("SELECT id, message from FORTUNE LIMIT 1;SELECT message, id from FORTUNE LIMIT 1", ctx.asyncAssertSuccess(result1 -> {
         ctx.assertEquals(1, result1.size());
         ctx.assertEquals(Arrays.asList("id", "message"), result1.columnsNames());
         Tuple row1 = result1.iterator().next();
@@ -137,7 +138,7 @@ public abstract class PgConnectionTestBase extends PgTestBase {
         ctx.assertTrue(row2.getValue(1) instanceof Integer);
         ctx.assertNull(result2.next());
         async.complete();
-      })));
+      }));
     }));
   }
 
@@ -169,9 +170,9 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testQueryError(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("SELECT whatever from DOES_NOT_EXIST", AsyncResultVertxConverter.from(ctx.asyncAssertFailure(err -> {
+      conn.query("SELECT whatever from DOES_NOT_EXIST", ctx.asyncAssertFailure(err -> {
         async.complete();
-      })));
+      }));
     }));
   }
 
@@ -179,10 +180,10 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testUpdate(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("UPDATE Fortune SET message = 'Whatever' WHERE id = 9", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.query("UPDATE Fortune SET message = 'Whatever' WHERE id = 9", ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(1, result.updatedCount());
         async.complete();
-      })));
+      }));
     }));
   }
 
@@ -190,14 +191,14 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testUpdateError(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("INSERT INTO Fortune (id, message) VALUES (1, 'Duplicate')", AsyncResultVertxConverter.from(ctx.asyncAssertFailure(err -> {
+      conn.query("INSERT INTO Fortune (id, message) VALUES (1, 'Duplicate')", ctx.asyncAssertFailure(err -> {
         ctx.assertEquals("23505", ((PgException) err).getCode());
-        conn.query("SELECT 1000", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+        conn.query("SELECT 1000", ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(1, result.size());
           ctx.assertEquals(1000, result.iterator().next().getInteger(0));
           async.complete();
-        })));
-      })));
+        }));
+      }));
     }));
   }
 
@@ -205,10 +206,10 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testInsert(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("INSERT INTO Fortune (id, message) VALUES (13, 'Whatever')", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.query("INSERT INTO Fortune (id, message) VALUES (13, 'Whatever')", ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(1, result.updatedCount());
         async.complete();
-      })));
+      }));
     }));
   }
 
@@ -216,10 +217,10 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testInsertReturning(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.preparedQuery("INSERT INTO Fortune (id, message) VALUES ($1, $2) RETURNING id", Tuple.of(14, "SomeMessage"), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.preparedQuery("INSERT INTO Fortune (id, message) VALUES ($1, $2) RETURNING id", Tuple.of(14, "SomeMessage"), ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(14, result.iterator().next().getInteger("id"));
         async.complete();
-      })));
+      }));
     }));
   }
 
@@ -227,13 +228,13 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testInsertReturningError(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.preparedQuery("INSERT INTO Fortune (id, message) VALUES ($1, $2) RETURNING id", Tuple.of(15, "SomeMessage"), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.preparedQuery("INSERT INTO Fortune (id, message) VALUES ($1, $2) RETURNING id", Tuple.of(15, "SomeMessage"), ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(15, result.iterator().next().getInteger("id"));
-        conn.preparedQuery("INSERT INTO Fortune (id, message) VALUES ($1, $2) RETURNING id", Tuple.of(15, "SomeMessage"), AsyncResultVertxConverter.from(ctx.asyncAssertFailure(err -> {
+        conn.preparedQuery("INSERT INTO Fortune (id, message) VALUES ($1, $2) RETURNING id", Tuple.of(15, "SomeMessage"), ctx.asyncAssertFailure(err -> {
           ctx.assertEquals("23505", ((PgException) err).getCode());
           async.complete();
-        })));
-      })));
+        }));
+      }));
       }));
   }
 
@@ -241,10 +242,10 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testDelete(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("DELETE FROM Fortune where id = 6", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.query("DELETE FROM Fortune where id = 6", ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(1, result.updatedCount());
         async.complete();
-      })));
+      }));
     }));
   }
 
@@ -252,21 +253,21 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testBatchUpdate(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.prepare("UPDATE Fortune SET message=$1 WHERE id=$2", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(ps -> {
+      conn.prepare("UPDATE Fortune SET message=$1 WHERE id=$2", ctx.asyncAssertSuccess(ps -> {
         List<Tuple> batch = new ArrayList<>();
         batch.add(Tuple.of("val0", 1));
         batch.add(Tuple.of("val1", 2));
-        ps.batch(batch, AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+        ps.batch(batch, ctx.asyncAssertSuccess(result -> {
           for (int i = 0;i < 2;i++) {
             ctx.assertEquals(1, result.updatedCount());
             result = result.next();
           }
           ctx.assertNull(result);
-          ps.close(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
+          ps.close(ctx.asyncAssertSuccess(v -> {
             async.complete();
-          })));
-        })));
-      })));
+          }));
+        }));
+      }));
     }));
   }
 
@@ -279,18 +280,18 @@ public abstract class PgConnectionTestBase extends PgTestBase {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
       int id = randomWorld();
-      conn.prepare("INSERT INTO World (id, randomnumber) VALUES ($1, $2)", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(worldUpdate -> {
+      conn.prepare("INSERT INTO World (id, randomnumber) VALUES ($1, $2)", ctx.asyncAssertSuccess(worldUpdate -> {
         List<Tuple> batch = new ArrayList<>();
         batch.add(Tuple.of(id, 3));
-        worldUpdate.batch(batch, AsyncResultVertxConverter.from(ctx.asyncAssertFailure(err -> {
+        worldUpdate.batch(batch, ctx.asyncAssertFailure(err -> {
           ctx.assertEquals("23505", ((PgException) err).getCode());
-          conn.query("SELECT 1000", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+          conn.query("SELECT 1000", ctx.asyncAssertSuccess(result -> {
             ctx.assertEquals(1, result.size());
             ctx.assertEquals(1000, result.iterator().next().getInteger(0));
             async.complete();
-          })));
-        })));
-      })));
+          }));
+        }));
+      }));
     }));
   }
 
@@ -299,15 +300,15 @@ public abstract class PgConnectionTestBase extends PgTestBase {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
       int id = randomWorld();
-      conn.prepare("SELECT count(id) FROM World", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(worldUpdate -> {
+      conn.prepare("SELECT count(id) FROM World", ctx.asyncAssertSuccess(worldUpdate -> {
         List<Tuple> batch = new ArrayList<>();
         batch.add(Tuple.tuple());
         batch.add(Tuple.tuple());
-        worldUpdate.batch(batch, AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+        worldUpdate.batch(batch, ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(result.size(), result.next().size());
           async.complete();
-        })));
-      })));
+        }));
+      }));
     }));
   }
 
@@ -331,10 +332,10 @@ public abstract class PgConnectionTestBase extends PgTestBase {
         conn.clientSocket().close();
       });
     });
-    proxy.listen(8080, "localhost", ctx.asyncAssertSuccess(v1 -> {
+    proxy.listen(8080, "localhost", ar -> ctx.<Void>asyncAssertSuccess(v1 -> {
       options.setPort(8080).setHost("localhost");
       connector.accept(ctx.asyncAssertFailure(err -> async.complete()));
-    }));
+    }).handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
@@ -347,14 +348,14 @@ public abstract class PgConnectionTestBase extends PgTestBase {
       });
       conn.connect();
     });
-    proxy.listen(8080, "localhost", ctx.asyncAssertSuccess(v1 -> {
+    proxy.listen(8080, "localhost", ar -> ctx.<Void>asyncAssertSuccess(v1 -> {
       options.setPort(8080).setHost("localhost");
       connector.accept(ctx.asyncAssertSuccess(conn -> {
         conn.closeHandler(v2 -> {
           async.complete();
         });
       }));
-    }));
+    }).handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
@@ -374,7 +375,7 @@ public abstract class PgConnectionTestBase extends PgTestBase {
       });
       conn.connect();
     });
-    proxy.listen(8080, "localhost", ctx.asyncAssertSuccess(v1 -> {
+    proxy.listen(8080, "localhost", ar->ctx.<Void>asyncAssertSuccess(v1 -> {
       options.setPort(8080).setHost("localhost");
       connector.accept(ctx.asyncAssertSuccess(conn -> {
         AtomicInteger count = new AtomicInteger();
@@ -388,18 +389,18 @@ public abstract class PgConnectionTestBase extends PgTestBase {
         });
         connected.complete(null);
       }));
-    }));
+    }).handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
   public void testCloseWithQueryInProgress(TestContext ctx) {
     Async async = ctx.async(2);
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("SELECT id, randomnumber from WORLD", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.query("SELECT id, randomnumber from WORLD", ctx.asyncAssertSuccess(result -> {
         ctx.assertEquals(2, async.count());
         ctx.assertEquals(10000, result.size());
         async.countDown();
-      })));
+      }));
       conn.closeHandler(v -> {
         ctx.assertEquals(1, async.count());
         async.countDown();
@@ -412,10 +413,10 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testCloseWithErrorInProgress(TestContext ctx) {
     Async async = ctx.async(2);
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("SELECT whatever from DOES_NOT_EXIST", AsyncResultVertxConverter.from(ctx.asyncAssertFailure(err -> {
+      conn.query("SELECT whatever from DOES_NOT_EXIST", ctx.asyncAssertFailure(err -> {
         ctx.assertEquals(2, async.count());
         async.countDown();
-      })));
+      }));
       conn.closeHandler(v -> {
         ctx.assertEquals(1, async.count());
         async.countDown();
@@ -428,14 +429,14 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testTx(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.query("BEGIN", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result1 -> {
+      conn.query("BEGIN", ctx.asyncAssertSuccess(result1 -> {
         ctx.assertEquals(0, result1.size());
         ctx.assertNotNull(result1.iterator());
-        conn.query("COMMIT", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result2 -> {
+        conn.query("COMMIT", ctx.asyncAssertSuccess(result2 -> {
           ctx.assertEquals(0, result2.size());
           async.complete();
-        })));
-      })));
+        }));
+      }));
     }));
   }
 /*
@@ -597,17 +598,17 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testPreparedUpdate(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.prepare("UPDATE Fortune SET message = 'PgClient Rocks!' WHERE id = 2", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(ps -> {
-        ps.execute(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.prepare("UPDATE Fortune SET message = 'PgClient Rocks!' WHERE id = 2", ctx.asyncAssertSuccess(ps -> {
+        ps.execute(ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(1, result.updatedCount());
-          conn.prepare("SELECT message FROM Fortune WHERE id = 2", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(ps2 -> {
-            ps2.execute(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(r -> {
+          conn.prepare("SELECT message FROM Fortune WHERE id = 2", ctx.asyncAssertSuccess(ps2 -> {
+            ps2.execute(ctx.asyncAssertSuccess(r -> {
                 ctx.assertEquals("PgClient Rocks!", r.iterator().next().getValue(0));
                 async.complete();
-              })));
-          })));
-        })));
-      })));
+              }));
+          }));
+        }));
+      }));
     }));
   }
 
@@ -615,17 +616,17 @@ public abstract class PgConnectionTestBase extends PgTestBase {
   public void testPreparedUpdateWithParams(TestContext ctx) {
     Async async = ctx.async();
     connector.accept(ctx.asyncAssertSuccess(conn -> {
-      conn.prepare("UPDATE Fortune SET message = $1 WHERE id = $2", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(ps -> {
-        ps.execute(Tuple.of("PgClient Rocks Again!!", 2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+      conn.prepare("UPDATE Fortune SET message = $1 WHERE id = $2", ctx.asyncAssertSuccess(ps -> {
+        ps.execute(Tuple.of("PgClient Rocks Again!!", 2), ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(1, result.updatedCount());
-          conn.prepare("SELECT message FROM Fortune WHERE id = $1", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(ps2 -> {
-            ps2.execute(Tuple.of(2), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(r -> {
+          conn.prepare("SELECT message FROM Fortune WHERE id = $1", ctx.asyncAssertSuccess(ps2 -> {
+            ps2.execute(Tuple.of(2), ctx.asyncAssertSuccess(r -> {
                 ctx.assertEquals("PgClient Rocks Again!!", r.iterator().next().getValue(0));
                 async.complete();
-              })));
-          })));
-        })));
-      })));
+              }));
+          }));
+        }));
+      }));
     }));
   }
 
@@ -642,9 +643,9 @@ public abstract class PgConnectionTestBase extends PgTestBase {
           startFuture.complete();
         }));
       }
-    }, ctx.asyncAssertSuccess(id -> {
+    }, ar->ctx.<String>asyncAssertSuccess(id -> {
       vertx.undeploy(id);
-    }));
+    }).handle(AsyncResultVertxConverter.from(ar)));
   }
 
   @Test
@@ -654,16 +655,16 @@ public abstract class PgConnectionTestBase extends PgTestBase {
       PgTransaction tx = conn.begin();
       AtomicInteger u1 = new AtomicInteger();
       AtomicInteger u2 = new AtomicInteger();
-      conn.query("INSERT INTO TxTest (id) VALUES (1)", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(res -> u1.addAndGet(res.updatedCount()))));
-      conn.query("INSERT INTO TxTest (id) VALUES (2)", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(res -> u2.addAndGet(res.updatedCount()))));
-      tx.commit(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
+      conn.query("INSERT INTO TxTest (id) VALUES (1)", ctx.asyncAssertSuccess(res -> u1.addAndGet(res.updatedCount())));
+      conn.query("INSERT INTO TxTest (id) VALUES (2)", ctx.asyncAssertSuccess(res -> u2.addAndGet(res.updatedCount())));
+      tx.commit(ctx.asyncAssertSuccess(v -> {
         ctx.assertEquals(1, u1.get());
         ctx.assertEquals(1, u2.get());
-        conn.query("SELECT id FROM TxTest WHERE id=1 OR id=2", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+        conn.query("SELECT id FROM TxTest WHERE id=1 OR id=2", ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(2, result.size());
           done.complete();
-        })));
-      })));
+        }));
+      }));
     }));
   }
 
@@ -674,16 +675,16 @@ public abstract class PgConnectionTestBase extends PgTestBase {
       PgTransaction tx = conn.begin();
       AtomicInteger u1 = new AtomicInteger();
       AtomicInteger u2 = new AtomicInteger();
-      conn.query("INSERT INTO TxTest (id) VALUES (3)", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(res -> u1.addAndGet(res.updatedCount()))));
-      conn.query("INSERT INTO TxTest (id) VALUES (4)", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(res -> u2.addAndGet(res.updatedCount()))));
-      tx.rollback(AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(v -> {
+      conn.query("INSERT INTO TxTest (id) VALUES (3)", ctx.asyncAssertSuccess(res -> u1.addAndGet(res.updatedCount())));
+      conn.query("INSERT INTO TxTest (id) VALUES (4)", ctx.asyncAssertSuccess(res -> u2.addAndGet(res.updatedCount())));
+      tx.rollback(ctx.asyncAssertSuccess(v -> {
         ctx.assertEquals(1, u1.get());
         ctx.assertEquals(1, u2.get());
-        conn.query("SELECT id FROM TxTest WHERE id=3 OR id=4", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+        conn.query("SELECT id FROM TxTest WHERE id=3 OR id=4", ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(0, result.size());
           done.complete();
-        })));
-      })));
+        }));
+      }));
     }));
   }
 
@@ -705,13 +706,13 @@ public abstract class PgConnectionTestBase extends PgTestBase {
         ctx.assertTrue(ar2.failed());
         ctx.assertEquals(1, failures.get());
         // This query won't be made in the same TX
-        conn.query("SELECT id FROM TxTest WHERE id=5", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(result -> {
+        conn.query("SELECT id FROM TxTest WHERE id=5", ctx.asyncAssertSuccess(result -> {
           ctx.assertEquals(0, result.size());
           done.complete();
-        })));
+        }));
       });
-      conn.query("SELECT id FROM TxTest", AsyncResultVertxConverter.from(queryAfterFailed::set));
-      tx.commit(AsyncResultVertxConverter.from(commit::set));
+      conn.query("SELECT id FROM TxTest", queryAfterFailed::set);
+      tx.commit(commit::set);
     }));
   }
 

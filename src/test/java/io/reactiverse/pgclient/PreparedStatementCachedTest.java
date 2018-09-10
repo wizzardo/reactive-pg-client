@@ -17,10 +17,6 @@
 
 package io.reactiverse.pgclient;
 
-import io.reactiverse.pgclient.impl.VertxPgClientFactory;
-import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
 import org.junit.Test;
 
 public class PreparedStatementCachedTest extends PreparedStatementTestBase {
@@ -32,18 +28,18 @@ public class PreparedStatementCachedTest extends PreparedStatementTestBase {
 
   @Test
   public void testConcurrent(TestContext ctx) {
-    VertxPgClientFactory.connect(vertx, (VertxPgConnectOptions) options(), ctx.asyncAssertSuccess(conn -> {
+    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       for (int i = 0;i < 10;i++) {
         Async async = ctx.async();
-        conn.prepare("SELECT * FROM Fortune WHERE id=$1", AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(ps -> {
-          ps.execute(Tuple.of(1), AsyncResultVertxConverter.from(ctx.asyncAssertSuccess(results -> {
+        conn.prepare("SELECT * FROM Fortune WHERE id=$1", ctx.asyncAssertSuccess(ps -> {
+          ps.execute(Tuple.of(1), ctx.asyncAssertSuccess(results -> {
             ctx.assertEquals(1, results.size());
             Tuple row = results.iterator().next();
             ctx.assertEquals(1, row.getInteger(0));
             ctx.assertEquals("fortune: No such file or directory", row.getString(1));
             async.complete();
-          })));
-        })));
+          }));
+        }));
       }
     }));
   }

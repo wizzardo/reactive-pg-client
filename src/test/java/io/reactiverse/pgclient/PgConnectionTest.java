@@ -18,6 +18,7 @@
 package io.reactiverse.pgclient;
 
 import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.shared.AsyncResultVertxConverter;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -25,6 +26,6 @@ import io.reactiverse.pgclient.impl.VertxPgClientFactory;
 public class PgConnectionTest extends PgConnectionTestBase {
 
   public PgConnectionTest() {
-    connector = (handler) -> VertxPgClientFactory.connect(vertx, options, handler);
+    connector = (handler) -> VertxPgClientFactory.connect(vertx, (VertxPgConnectOptions) options, ar -> handler.handle(AsyncResultVertxConverter.from(ar)));
   }
 }
