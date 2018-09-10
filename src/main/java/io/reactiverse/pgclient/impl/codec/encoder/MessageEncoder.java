@@ -137,6 +137,8 @@ public final class MessageEncoder {
     writeCString(out, StartupMessage.BUFF_UTF8);
     writeCString(out, StartupMessage.BUFF_DATE_STYLE);
     writeCString(out, StartupMessage.BUFF_ISO);
+    writeCString(out, StartupMessage.BUFF_INTERVAL_STYLE);
+    writeCString(out, StartupMessage.BUFF_INTERVAL_STYLE_TYPE);
     writeCString(out, StartupMessage.BUFF_EXTRA_FLOAT_DIGITS);
     writeCString(out, StartupMessage.BUFF_2);
 

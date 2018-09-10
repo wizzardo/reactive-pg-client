@@ -16,6 +16,9 @@
  */
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.data.Interval;
+import io.reactiverse.pgclient.data.Json;
+import io.reactiverse.pgclient.data.Numeric;
 import io.reactiverse.pgclient.data.Point;
 import io.reactiverse.pgclient.shared.Buffer;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -28,6 +31,13 @@ import java.util.UUID;
 
 //@VertxGen
 public interface Row extends Tuple {
+  /**
+   * Get a column name at {@code pos}.
+   *
+   * @param pos the position
+   * @return the column name or {@code null}
+   */
+  String getColumnName(int pos);
 
   /**
    * Get a boolean value at {@code pos}.
@@ -200,6 +210,15 @@ public interface Row extends Tuple {
   Point getPoint(String name);
 
   /**
+   * Get {@link Interval} value at {@code pos}.
+   *
+   * @param name the column
+   * @return the value or {@code null}
+   */
+  @GenIgnore
+  Interval getInterval(String name);
+
+  /**
    * Get an array of {@link Integer} value at {@code pos}.
    *
    * @param name the column
@@ -351,4 +370,13 @@ public interface Row extends Tuple {
    */
   @GenIgnore
   Point[] getPointArray(String name);
+
+  /**
+   * Get an array of {@link Point} value at {@code pos}.
+   *
+   * @param name the column
+   * @return the value or {@code null}
+   */
+  @GenIgnore
+  Interval[] getIntervalArray(String name);
 }

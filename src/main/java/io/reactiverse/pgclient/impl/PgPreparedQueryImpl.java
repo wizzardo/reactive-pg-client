@@ -33,11 +33,13 @@ import java.util.stream.Collector;
 class PgPreparedQueryImpl implements PgPreparedQuery {
 
   private final Connection conn;
+  private final Context context;
   private final PreparedStatement ps;
   private final AtomicBoolean closed = new AtomicBoolean();
 
-  PgPreparedQueryImpl(Connection conn, PreparedStatement ps) {
+  PgPreparedQueryImpl(Connection conn, Context context, PreparedStatement ps) {
     this.conn = conn;
+    this.context = context;
     this.ps = ps;
   }
 
@@ -69,20 +71,25 @@ class PgPreparedQueryImpl implements PgPreparedQuery {
                                  Collector<Row, A, R> collector,
                                  QueryResultHandler<R> resultHandler,
                                  Handler<AsyncResult<Boolean>> handler) {
-    String msg = ps.prepare((List<Object>) args);
-    if (msg != null) {
-      throw new IllegalArgumentException(msg);
+    if (context == Vertx.currentContext()) {
+      String msg = ps.prepare((List<Object>) args);
+      if (msg != null) {
+        handler.handle(Future.failedFuture(msg));
+      } else {
+        conn.schedule(new ExtendedQueryCommand<>(
+          ps,
+          args,
+          fetch,
+          portal,
+          suspended,
+          singleton,
+          collector,
+          resultHandler,
+          handler));
+      }
+    } else {
+      context.runOnContext(v -> execute(args, fetch, portal, suspended, singleton, collector, resultHandler, handler));
     }
-    conn.schedule(new ExtendedQueryCommand<>(
-      ps,
-      args,
-      fetch,
-      portal,
-      suspended,
-      singleton,
-      collector,
-      resultHandler,
-      handler));
     return this;
   }
 
@@ -119,7 +126,8 @@ class PgPreparedQueryImpl implements PgPreparedQuery {
     for  (Tuple args : argsList) {
       String msg = ps.prepare((List<Object>) args);
       if (msg != null) {
-        throw new IllegalArgumentException(msg);
+        handler.handle(Future.failedFuture(msg));
+        return this;
       }
     }
     PgResultBuilder<R1, R2, R3> b = new PgResultBuilder<>(factory, handler);
@@ -129,7 +137,7 @@ class PgPreparedQueryImpl implements PgPreparedQuery {
 
   @Override
   public PgStream<Row> createStream(int fetch, Tuple args) {
-    return new PgCursorStreamImpl(this, fetch, args);
+    return new PgStreamImpl(this, fetch, args);
   }
 
   @Override

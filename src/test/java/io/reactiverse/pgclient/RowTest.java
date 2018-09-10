@@ -71,6 +71,8 @@ public class RowTest extends PgTestBase {
             row::getOffsetTime,
             row::getTemporal,
             row::getUUID,
+            row::getPoint,
+            row::getInterval,
             row::getBooleanArray,
             row::getShortArray,
             row::getIntegerArray,
@@ -84,7 +86,9 @@ public class RowTest extends PgTestBase {
             row::getLocalDateTimeArray,
             row::getOffsetDateTimeArray,
             row::getBufferArray,
-            row::getUUIDArray
+            row::getUUIDArray,
+            row::getPointArray,
+            row::getIntervalArray
           );
           functions.forEach(f -> {
             ctx.assertEquals(null, f.apply("bar"));
@@ -99,6 +103,57 @@ public class RowTest extends PgTestBase {
     }));
   }
 
+  @Test
+  public void testGetColumnNameRows(TestContext ctx) {
+    Async async = ctx.async();
+    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SELECT 2 \"foo\"",
+        ctx.asyncAssertSuccess(result -> {
+          Row row = result.iterator().next();
+          ctx.assertEquals("foo",row.getColumnName(0));
+          async.complete();
+        }));
+    }));
+  }
+
+  @Test
+  public void testNotEqualGetColumnNameRows(TestContext ctx) {
+    Async async = ctx.async();
+    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SELECT 2 \"foo\"",
+        ctx.asyncAssertSuccess(result -> {
+          Row row = result.iterator().next();
+          ctx.assertNotEquals("bar",row.getColumnName(0));
+          async.complete();
+        }));
+    }));
+  }
+
+  @Test
+  public void testNegativeGetColumnNameRows(TestContext ctx) {
+    Async async = ctx.async();
+    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SELECT 2 \"foo\"",
+        ctx.asyncAssertSuccess(result -> {
+          Row row = result.iterator().next();
+          ctx.assertNull(row.getColumnName(-1));
+          async.complete();
+        }));
+    }));
+  }
+
+  @Test
+  public void testPreventLengthMaxIndexOutOfBoundGetColumnNameRows(TestContext ctx) {
+    Async async = ctx.async();
+    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SELECT 2 \"foo\"",
+        ctx.asyncAssertSuccess(result -> {
+          Row row = result.iterator().next();
+          ctx.assertNull(row.getColumnName(1));
+          async.complete();
+        }));
+    }));
+  }
 
 
 }

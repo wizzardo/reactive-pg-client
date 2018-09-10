@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class UnixDomainSocketTest {
@@ -40,10 +41,7 @@ public class UnixDomainSocketTest {
     Vertx vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(true));
     boolean nativeTransportEnabled = vertx.isNativeTransportEnabled();
     vertx.close();
-    if (nativeTransportEnabled) {
-      options = PgTestBase.startPg(true);
-      assertTrue(options.isUsingDomainSocket());
-    }
+    options = PgTestBase.startPg(nativeTransportEnabled);
   }
 
   @AfterClass
@@ -64,7 +62,7 @@ public class UnixDomainSocketTest {
 
   @Test
   public void uriTest(TestContext context) {
-    assumeNotNull(options);
+    assumeTrue(options.isUsingDomainSocket());
     String uri = "postgresql://postgres:postgres@/postgres?host=" + options.getHost() + "&port=" + options.getPort();
     client = VertxPgClientFactory.pool(uri);
     client.getConnection(AsyncResultVertxConverter.from(context.asyncAssertSuccess(pgConnection -> pgConnection.close())));
@@ -72,14 +70,14 @@ public class UnixDomainSocketTest {
 
   @Test
   public void simpleConnect(TestContext context) {
-    assumeNotNull(options);
+    assumeTrue(options.isUsingDomainSocket());
     client = VertxPgClientFactory.pool(new VertxPgPoolOptions(options));
     client.getConnection(AsyncResultVertxConverter.from(context.asyncAssertSuccess(pgConnection -> pgConnection.close())));
   }
 
   @Test
   public void connectWithVertxInstance(TestContext context) {
-    assumeNotNull(options);
+    assumeTrue(options.isUsingDomainSocket());
     Vertx vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(true));
     try {
       client = VertxPgClientFactory.pool(vertx, new VertxPgPoolOptions(options));

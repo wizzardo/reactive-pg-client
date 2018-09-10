@@ -31,7 +31,7 @@ To use the Reactive Postgres Client add the following dependency to the _depende
 <dependency>
  <groupId>io.reactiverse</groupId>
  <artifactId>reactive-pg-client</artifactId>
- <version>0.8.0</version>
+ <version>0.10.1</version>
 </dependency>
 ```
 
@@ -39,7 +39,7 @@ To use the Reactive Postgres Client add the following dependency to the _depende
 
 ```groovy
 dependencies {
- compile 'io.reactiverse:reactive-pg-client:0.8.0'
+ compile 'io.reactiverse:reactive-pg-client:0.10.1'
 }
 ```
 
@@ -65,7 +65,7 @@ var client = PgClient.pool(options)
 client.query("SELECT * FROM users WHERE id='julien'", { ar ->
   if (ar.succeeded()) {
     var result = ar.result()
-    println("Got ${result.size()} results ")
+    println("Got ${result.size()} rows ")
   } else {
     println("Failure: ${ar.cause().getMessage()}")
   }
@@ -267,7 +267,7 @@ Here is how to run simple queries:
 client.query("SELECT * FROM users WHERE id='julien'", { ar ->
   if (ar.succeeded()) {
     var result = ar.result()
-    println("Got ${result.size()} results ")
+    println("Got ${result.size()} rows ")
   } else {
     println("Failure: ${ar.cause().getMessage()}")
   }
@@ -282,8 +282,8 @@ The SQL string can refer to parameters by position, using `$1`, `$2`, etc…​
 ```kotlin
 client.preparedQuery("SELECT * FROM users WHERE id=\$$1", Tuple.of("julien"), { ar ->
   if (ar.succeeded()) {
-    var result = ar.result()
-    println("Got ${result.size()} results ")
+    var rows = ar.result()
+    println("Got ${rows.size()} rows ")
   } else {
     println("Failure: ${ar.cause().getMessage()}")
   }
@@ -291,13 +291,13 @@ client.preparedQuery("SELECT * FROM users WHERE id=\$$1", Tuple.of("julien"), { 
 
 ```
 
-Query methods provides an asynchronous [`PgResult`](../../apidocs/io/reactiverse/pgclient/PgResult.html) instance that works for _SELECT_ queries
+Query methods provides an asynchronous [`PgRowSet`](../../apidocs/io/reactiverse/pgclient/PgRowSet.html) instance that works for _SELECT_ queries
 
 ```kotlin
 client.preparedQuery("SELECT first_name, last_name FROM users", { ar ->
   if (ar.succeeded()) {
-    var result = ar.result()
-    for (row in result) {
+    var rows = ar.result()
+    for (row in rows) {
       println("User ${row.getString(0)} ${row.getString(1)}")
     }
   } else {
@@ -312,8 +312,8 @@ or _UPDATE_/_INSERT_ queries:
 ```kotlin
 client.preparedQuery("INSERT INTO users (first_name, last_name) VALUES (\$$1, \$$2)", Tuple.of("Julien", "Viet"), { ar ->
   if (ar.succeeded()) {
-    var result = ar.result()
-    println(result.updatedCount())
+    var rows = ar.result()
+    println(rows.rowCount())
   } else {
     println("Failure: ${ar.cause().getMessage()}")
   }
@@ -361,8 +361,8 @@ batch.add(Tuple.of("emad", "Emad Alblueshi"))
 client.preparedBatch("INSERT INTO USERS (id, name) VALUES (\$$1, \$$2)", batch, { res ->
   if (res.succeeded()) {
 
-    // Process results
-    var results = res.result()
+    // Process rows
+    var rows = res.result()
   } else {
     println("Batch failed ${res.cause()}")
   }
@@ -399,7 +399,7 @@ connection.prepare("SELECT * FROM users WHERE first_name LIKE \$$1", { ar1 ->
     pq.execute(Tuple.of("julien"), { ar2 ->
       if (ar2.succeeded()) {
         // All rows
-        var result = ar2.result()
+        var rows = ar2.result()
       }
     })
   }
@@ -410,7 +410,7 @@ connection.prepare("SELECT * FROM users WHERE first_name LIKE \$$1", { ar1 ->
 NOTE: prepared query caching depends on the [`setCachePreparedStatements`](../../apidocs/io/reactiverse/pgclient/PgConnectOptions.html#setCachePreparedStatements-boolean-) and
 does not depend on whether you are creating prepared queries or use [`direct prepared queries`](../../apidocs/io/reactiverse/pgclient/PgClient.html#preparedQuery-java.lang.String-io.vertx.core.Handler-)
 
-By default prepared query executions fetch all results, you can use a [`PgCursor`](../../apidocs/io/reactiverse/pgclient/PgCursor.html) to control the amount of rows you want to read:
+By default prepared query executions fetch all rows, you can use a [`PgCursor`](../../apidocs/io/reactiverse/pgclient/PgCursor.html) to control the amount of rows you want to read:
 
 ```kotlin
 connection.prepare("SELECT * FROM users WHERE first_name LIKE \$$1", { ar1 ->
@@ -423,17 +423,17 @@ connection.prepare("SELECT * FROM users WHERE first_name LIKE \$$1", { ar1 ->
     // Read 50 rows
     cursor.read(50, { ar2 ->
       if (ar2.succeeded()) {
-        var result = ar2.result()
+        var rows = ar2.result()
 
         // Check for more ?
         if (cursor.hasMore()) {
 
           // Read the next 50
           cursor.read(50, { ar3 ->
-            // More results, and so on...
+            // More rows, and so on...
           })
         } else {
-          // No more results
+          // No more rows
         }
       }
     })
@@ -508,8 +508,8 @@ connection.prepare("INSERT INTO USERS (id, name) VALUES (\$$1, \$$2)", { ar1 ->
     prepared.batch(batch, { res ->
       if (res.succeeded()) {
 
-        // Process results
-        var results = res.result()
+        // Process rows
+        var rows = res.result()
       } else {
         println("Batch failed ${res.cause()}")
       }
@@ -520,6 +520,8 @@ connection.prepare("INSERT INTO USERS (id, name) VALUES (\$$1, \$$2)", { ar1 ->
 ```
 
 ## Using transactions
+
+### Transactions with connections
 
 You can execute transaction using SQL `BEGIN`/`COMMIT`/`ROLLBACK`, if you do so you must use
 a [`PgConnection`](../../apidocs/io/reactiverse/pgclient/PgConnection.html) and manage it yourself.
@@ -548,6 +550,12 @@ pool.getConnection({ res ->
 
     conn.query("INSERT INTO Users (first_name,last_name) VALUES ('Julien','Viet')", { ar ->
       // Works fine of course
+      if (ar.succeeded()) {
+
+      } else {
+        tx.rollback()
+        conn.close()
+      }
     })
     conn.query("INSERT INTO Users (first_name,last_name) VALUES ('Julien','Viet')", { ar ->
       // Fails and triggers transaction aborts
@@ -556,10 +564,23 @@ pool.getConnection({ res ->
     // Attempt to commit the transaction
     tx.commit({ ar ->
       // But transaction abortion fails it
+
+      // Return the connection to the pool
+      conn.close()
     })
   }
 })
 
+```
+
+### Simplified transaction API
+
+When you use a pool, you can start a transaction directly on the pool.
+
+It borrows a connection from the pool, begins the transaction and releases the connection to the pool when the transaction ends.
+
+```kotlin
+Code not translatable
 ```
 
 ## Postgres type mapping
@@ -575,23 +596,26 @@ Currently the client supports the following Postgres types
 * CHAR (`java.lang.String`)
 * VARCHAR (`java.lang.String`)
 * TEXT (`java.lang.String`)
+* ENUM (`java.lang.String`)
 * NAME (`java.lang.String`)
-* NUMERIC (`io.reactiverse.pgclient.Numeric`)
+* NUMERIC (`io.reactiverse.pgclient.data.Numeric`)
 * UUID (`java.util.UUID`)
 * DATE (`java.time.LocalDate`)
 * TIME (`java.time.LocalTime`)
 * TIMETZ (`java.time.OffsetTime`)
 * TIMESTAMP (`java.time.LocalDateTime`)
 * TIMESTAMPTZ (`java.time.OffsetDateTime`)
+* INTERVAL (`io.reactiverse.pgclient.data.Interval`)
 * BYTEA (`io.vertx.core.buffer.Buffer`)
-* JSON (`io.reactiverse.pgclient.Json`)
-* JSONB (`io.reactiverse.pgclient.Json`)
+* JSON (`io.reactiverse.pgclient.data.Json`)
+* JSONB (`io.reactiverse.pgclient.data.Json`)
+* POINT (`io.reactiverse.pgclient.data.Point`)
 
 Arrays of these types are supported.
 
 ### Handling JSON
 
-The [`Json`](../../apidocs/io/reactiverse/pgclient/Json.html) Java type is used to represent the Postgres `JSON` and `JSONB` type.
+The [`Json`](../../apidocs/io/reactiverse/pgclient/data/Json.html) Java type is used to represent the Postgres `JSON` and `JSONB` type.
 
 The main reason of this type is handling `null` JSON values.
 
@@ -615,7 +639,7 @@ value = tuple.getJson(3).value()
 
 ### Handling NUMERIC
 
-The [`Numeric`](../../apidocs/io/reactiverse/pgclient/Numeric.html) Java type is used to represent the Postgres `NUMERIC` type.
+The [`Numeric`](../../apidocs/io/reactiverse/pgclient/data/Numeric.html) Java type is used to represent the Postgres `NUMERIC` type.
 
 ```kotlin
 var numeric = row.getNumeric("value")
@@ -630,6 +654,60 @@ if (numeric.isNaN()) {
 ## Handling arrays
 
 Arrays are available on [`Tuple`](../../apidocs/io/reactiverse/pgclient/Tuple.html) and [`Row`](../../apidocs/io/reactiverse/pgclient/Row.html):
+
+```kotlin
+Code not translatable
+```
+
+## Collector queries
+
+You can use Java collectors with the query API:
+
+```kotlin
+Code not translatable
+```
+
+The collector processing must not keep a reference on the [`Row`](../../apidocs/io/reactiverse/pgclient/Row.html) as
+there is a single row used for processing the entire set.
+
+The Java `Collectors` provides many interesting predefined collectors, for example you can
+create easily create a string directly from the row set:
+
+```kotlin
+Code not translatable
+```
+
+## RxJava support
+
+The rxified API supports RxJava 1 and RxJava 2, the following examples use RxJava 2.
+
+Most asynchronous constructs are available as methods prefixed by `rx`:
+
+```kotlin
+Code not translatable
+```
+
+
+### Streaming
+
+RxJava 2 supports `Observable` and `Flowable` types, these are exposed using
+the [`PgStream`](../../apidocs/io/reactiverse/reactivex/pgclient/PgStream.html) that you can get
+from a [`PgPreparedQuery`](../../apidocs/io/reactiverse/reactivex/pgclient/PgPreparedQuery.html):
+
+```kotlin
+Code not translatable
+```
+
+The same example using `Flowable`:
+
+```kotlin
+Code not translatable
+```
+
+### Transaction
+
+The simplified transaction API allows to easily write transactional
+asynchronous flows:
 
 ```kotlin
 Code not translatable
@@ -683,11 +761,56 @@ subscriber.connect({ ar ->
 
 ```
 
+The channel name that is given to the channel method will be the exact name of the channel as held by Postgres for sending
+notifications.  Note this is different than the representation of the channel name in SQL, and
+internally [`PgSubscriber`](../../apidocs/io/reactiverse/pgclient/pubsub/PgSubscriber.html) will prepare the submitted channel name as a quoted identifier:
+
+```kotlin
+
+var subscriber = PgSubscriber.subscriber(vertx, PgConnectOptions(
+  port = 5432,
+  host = "the-host",
+  database = "the-db",
+  user = "user",
+  password = "secret"))
+
+subscriber.connect({ ar ->
+  if (ar.succeeded()) {
+    // Complex channel name - name in PostgreSQL requires a quoted ID
+    subscriber.channel("Complex.Channel.Name").handler({ payload ->
+      println("Received ${payload}")
+    })
+    subscriber.channel("Complex.Channel.Name").subscribeHandler({ subscribed ->
+      subscriber.actualConnection().query("NOTIFY \"Complex.Channel.Name\", 'msg'", { notified ->
+        println("Notified \"Complex.Channel.Name\"")
+      })
+    })
+
+    // PostgreSQL simple ID's are forced lower-case 
+    subscriber.channel("simple_channel").handler({ payload ->
+      println("Received ${payload}")
+    })
+    subscriber.channel("simple_channel").subscribeHandler({ subscribed ->
+      // The following simple channel identifier is forced to lower case
+      subscriber.actualConnection().query("NOTIFY Simple_CHANNEL, 'msg'", { notified ->
+        println("Notified simple_channel")
+      })
+    })
+
+    // The following channel name is longer than the current
+    // (NAMEDATALEN = 64) - 1 == 63 character limit and will be truncated
+    subscriber.channel("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbb").handler({ payload ->
+      println("Received ${payload}")
+    })
+  }
+})
+
+```
 You can provide a reconnect policy as a function that takes the number of `retries` as argument and returns an `amountOfTime`
 value:
 
 * when `amountOfTime < 0`: the subscriber is closed and there is no retry
-* when `amountOfTime ## 0`: the subscriber retries to connect immediately
+* when `amountOfTime = 0`: the subscriber retries to connect immediately
 * when `amountOfTime > 0`: the subscriber retries after `amountOfTime` milliseconds
 
 ```kotlin
@@ -715,7 +838,7 @@ The default policy is to not reconnect.
 ## Using SSL/TLS
 
 To configure the client to use SSL connection, you can configure the [`PgConnectOptions`](../../apidocs/io/reactiverse/pgclient/PgConnectOptions.html)
-like a Vert.x `NetClient`}.
+like a Vert.x `NetClient`.
 
 ```kotlin
 

@@ -1,54 +1,61 @@
 package io.reactiverse.kotlin.pgclient
 
 import io.reactiverse.pgclient.PgConnectOptions
+import io.vertx.core.net.JdkSSLEngineOptions
+import io.vertx.core.net.JksOptions
+import io.vertx.core.net.OpenSSLEngineOptions
+import io.vertx.core.net.PemKeyCertOptions
+import io.vertx.core.net.PemTrustOptions
+import io.vertx.core.net.PfxOptions
+import io.vertx.core.net.ProxyOptions
 
 /**
  * A function providing a DSL for building [io.reactiverse.pgclient.PgConnectOptions] objects.
  *
  *
- * @param cachePreparedStatements
- * @param connectTimeout
- * @param crlPaths
- * @param crlValues
- * @param database
- * @param enabledCipherSuites
- * @param enabledSecureTransportProtocols
- * @param host
- * @param hostnameVerificationAlgorithm
- * @param idleTimeout
- * @param jdkSslEngineOptions
- * @param keyStoreOptions
- * @param localAddress
- * @param logActivity
- * @param metricsName
- * @param openSslEngineOptions
- * @param password
- * @param pemKeyCertOptions
- * @param pemTrustOptions
- * @param pfxKeyCertOptions
- * @param pfxTrustOptions
- * @param pipeliningLimit
- * @param port
- * @param proxyOptions
- * @param receiveBufferSize
- * @param reconnectAttempts
- * @param reconnectInterval
- * @param reuseAddress
- * @param reusePort
- * @param sendBufferSize
- * @param soLinger
- * @param ssl
- * @param tcpCork
- * @param tcpFastOpen
- * @param tcpKeepAlive
- * @param tcpNoDelay
- * @param tcpQuickAck
- * @param trafficClass
- * @param trustAll
- * @param trustStoreOptions
- * @param useAlpn
- * @param usePooledBuffers
- * @param username
+ * @param cachePreparedStatements 
+ * @param connectTimeout 
+ * @param crlPaths 
+ * @param crlValues 
+ * @param database 
+ * @param enabledCipherSuites 
+ * @param enabledSecureTransportProtocols 
+ * @param host 
+ * @param hostnameVerificationAlgorithm 
+ * @param idleTimeout 
+ * @param jdkSslEngineOptions 
+ * @param keyStoreOptions 
+ * @param localAddress 
+ * @param logActivity 
+ * @param metricsName 
+ * @param openSslEngineOptions 
+ * @param password 
+ * @param pemKeyCertOptions 
+ * @param pemTrustOptions 
+ * @param pfxKeyCertOptions 
+ * @param pfxTrustOptions 
+ * @param pipeliningLimit 
+ * @param port 
+ * @param proxyOptions 
+ * @param receiveBufferSize 
+ * @param reconnectAttempts 
+ * @param reconnectInterval 
+ * @param reuseAddress 
+ * @param reusePort 
+ * @param sendBufferSize 
+ * @param soLinger 
+ * @param ssl 
+ * @param tcpCork 
+ * @param tcpFastOpen 
+ * @param tcpKeepAlive 
+ * @param tcpNoDelay 
+ * @param tcpQuickAck 
+ * @param trafficClass 
+ * @param trustAll 
+ * @param trustStoreOptions 
+ * @param useAlpn 
+ * @param usePooledBuffers 
+ * @param user 
  *
  * <p/>
  * NOTE: This function has been automatically generated from the [io.reactiverse.pgclient.PgConnectOptions original] using Vert.x codegen.
@@ -96,7 +103,7 @@ fun PgConnectOptions(
   trustStoreOptions: io.vertx.core.net.JksOptions? = null,
   useAlpn: Boolean? = null,
   usePooledBuffers: Boolean? = null,
-  username: String? = null): PgConnectOptions = io.reactiverse.pgclient.PgConnectOptions().apply {
+  user: String? = null): PgConnectOptions = io.reactiverse.pgclient.PgConnectOptions().apply {
 
   if (cachePreparedStatements != null) {
     this.setCachePreparedStatements(cachePreparedStatements)
@@ -230,8 +237,8 @@ fun PgConnectOptions(
   if (usePooledBuffers != null) {
     this.setUsePooledBuffers(usePooledBuffers)
   }
-  if (username != null) {
-    this.setUser(username)
+  if (user != null) {
+    this.setUser(user)
   }
 }
 

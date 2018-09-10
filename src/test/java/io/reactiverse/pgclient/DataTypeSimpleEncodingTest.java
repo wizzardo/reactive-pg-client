@@ -1,5 +1,8 @@
 package io.reactiverse.pgclient;
 
+import io.reactiverse.pgclient.data.Interval;
+import io.reactiverse.pgclient.data.Json;
+import io.reactiverse.pgclient.data.Numeric;
 import io.reactiverse.pgclient.data.Point;
 import io.reactiverse.pgclient.shared.Buffer;
 import io.vertx.core.json.JsonArray;
@@ -346,6 +349,23 @@ public class DataTypeSimpleEncodingTest extends DataTypeTestBase {
   }
 
   @Test
+  public void testEnum(TestContext ctx) {
+    Async async = ctx.async();
+    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn
+        .query("SELECT \"currentMood\" FROM \"EnumDataType\" WHERE \"id\" = 5", ctx.asyncAssertSuccess(result -> {
+          ctx.assertEquals(1, result.size());
+          Row row = result.iterator().next();
+          ColumnChecker.checkColumn(0, "currentMood")
+            .returns(Tuple::getValue, Row::getValue, "ok")
+            .returns(Tuple::getString, Row::getString, "ok")
+            .forRow(row);
+          async.complete();
+        }));
+    }));
+  }
+
+  @Test
   public void testUUID(TestContext ctx) {
     Async async = ctx.async();
     pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
@@ -456,6 +476,31 @@ public class DataTypeSimpleEncodingTest extends DataTypeTestBase {
           async.complete();
         }));
       }));
+    }));
+  }
+
+  @Test
+  public void testInterval(TestContext ctx) {
+    Async async = ctx.async();
+    PgClient.connect(vertx, options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SELECT '10 years 3 months 332 days 20 hours 20 minutes 20.999991 seconds'::INTERVAL \"Interval\"",
+          ctx.asyncAssertSuccess(result -> {
+          ctx.assertEquals(1, result.size());
+          Row row = result.iterator().next();
+            Interval interval = Interval.of()
+              .years(10)
+              .months(3)
+              .days(332)
+              .hours(20)
+              .minutes(20)
+              .seconds(20)
+              .microseconds(999991);
+            ColumnChecker.checkColumn(0, "Interval")
+              .returns(Tuple::getValue, Row::getValue, interval)
+              .returns(Tuple::getInterval, Row::getInterval, interval)
+              .forRow(row);
+          async.complete();
+        }));
     }));
   }
 
@@ -613,9 +658,7 @@ public class DataTypeSimpleEncodingTest extends DataTypeTestBase {
 
   @Test
   public void testDecodeTIMESTAMPTZArray(TestContext ctx) {
-    // timestamp issue to investigate
-    // org.junit.internal.ArrayComparisonFailure: Expected that public abstract java.lang.Object io.reactiverse.pgclient.Tuple.getValue(int) returns [2017-05-15T02:59:59.237666Z] instead of [2017-05-15T04:59:59.237666+02:00]: arrays first differed at element [0]; expected:<2017-05-15T04:59:59.237666+02:00> but was:<2017-05-15T02:59:59.237666Z>
-    // testDecodeXXXArray(ctx, "OffsetDateTime", "ArrayDataType", Tuple::getOffsetDateTimeArray, Row::getOffsetDateTimeArray, DataTypeExtendedEncodingTest.odt);
+     testDecodeXXXArray(ctx, "OffsetDateTime", "ArrayDataType", Tuple::getOffsetDateTimeArray, Row::getOffsetDateTimeArray, DataTypeExtendedEncodingTest.odt);
   }
 
   @Test
@@ -626,6 +669,17 @@ public class DataTypeSimpleEncodingTest extends DataTypeTestBase {
   @Test
   public void testDecodeUUIDArray(TestContext ctx) {
     testDecodeXXXArray(ctx, "UUID", "ArrayDataType", Tuple::getUUIDArray, Row::getUUIDArray, DataTypeExtendedEncodingTest.uuid);
+  }
+
+  @Test
+  public void testDecodeENUMArray(TestContext ctx) {
+    String [] moods = new String [] {"ok", "unhappy", "happy"};
+    testDecodeXXXArray(ctx, "Enum", "ArrayDataType", Tuple::getStringArray, Row::getStringArray, moods);
+  }
+
+  @Test
+  public void testDecodeINTERVALArray(TestContext ctx) {
+    testDecodeXXXArray(ctx, "Interval", "ArrayDataType", Tuple::getIntervalArray, Row::getIntervalArray, DataTypeExtendedEncodingTest.intervals);
   }
 
 
@@ -656,14 +710,17 @@ public class DataTypeSimpleEncodingTest extends DataTypeTestBase {
                                       ColumnChecker.SerializableBiFunction<Row, String, Object> byNameGetter,
                                       Object... expected) {
     Async async = ctx.async();
-    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
-      conn.query("SELECT \"" + columnName + "\" FROM \"" + tableName + "\" WHERE \"id\" = 1",
-        ctx.asyncAssertSuccess(result -> {
-          ColumnChecker.checkColumn(0, columnName)
-            .returns(Tuple::getValue, Row::getValue, expected)
-            .returns(byIndexGetter, byNameGetter, expected)
-            .forRow(result.iterator().next());
-          async.complete();
+    pgClientFactory.connect(options, ctx.asyncAssertSuccess(conn -> {
+      conn.query("SET TIME ZONE 'UTC'",
+        ctx.asyncAssertSuccess(res -> {
+          conn.query("SELECT \"" + columnName + "\" FROM \"" + tableName + "\" WHERE \"id\" = 1",
+            ctx.asyncAssertSuccess(result -> {
+            ColumnChecker.checkColumn(0, columnName)
+              .returns(Tuple::getValue, Row::getValue, expected)
+              .returns(byIndexGetter, byNameGetter, expected)
+              .forRow(result.iterator().next());
+            async.complete();
+            }));
         }));
     }));
   }

@@ -27,8 +27,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -137,19 +141,64 @@ public abstract class PreparedStatementTestBase extends PgTestBase {
     }));
   }
 
-  @Test
-  public void testQueryBindError(TestContext ctx) {
+  private static final String validationErrorSql = "SELECT * FROM Fortune WHERE id=$1";
+  private static final Tuple validationErrorTuple = Tuple.of("invalid-id");
+
+  private void testValidationError(TestContext ctx, BiConsumer<PgConnection, Handler<Throwable>> test) {
     Async async = ctx.async();
-    pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
-      conn.prepare("SELECT * FROM Fortune WHERE id=$1", ctx.asyncAssertSuccess(ps -> {
-        try {
-          ps.execute(Tuple.of("invalid-id"), ar -> {});
-        } catch (IllegalArgumentException e) {
-          ctx.assertEquals(Util.buildInvalidArgsError(Stream.of("invalid-id"), Stream.of(Integer.class)), e.getMessage());
-          async.complete();
-        }
+    pgClientFactory.connect(options(), options(), ctx.asyncAssertSuccess(conn -> {
+      test.accept(conn, failure -> {
+        ctx.assertEquals(Util.buildInvalidArgsError(Stream.of("invalid-id"), Stream.of(Integer.class)), failure.getMessage());
+        async.complete();
+      });
+      conn.preparedQuery("SELECT * FROM Fortune WHERE id=$1", Tuple.of("invalid-id"), ctx.asyncAssertFailure(failure -> {
       }));
     }));
+  }
+
+  @Test
+  public void testPrepareExecuteValidationError(TestContext ctx) {
+    testValidationError(ctx, (conn, cont) -> {
+      conn.prepare("SELECT * FROM Fortune WHERE id=$1", ctx.asyncAssertSuccess(ps -> {
+        ps.execute(Tuple.of("invalid-id"), ctx.asyncAssertFailure(cont));
+      }));
+    });
+  }
+
+  @Test
+  public void testPrepareCursorValidationError(TestContext ctx) {
+    testValidationError(ctx, (conn, cont) -> {
+      conn.prepare("SELECT * FROM Fortune WHERE id=$1", ctx.asyncAssertSuccess(ps -> {
+        try {
+          ps.cursor(Tuple.of("invalid-id"));
+        } catch (Exception e) {
+          cont.handle(e);
+        }
+      }));
+    });
+  }
+
+  @Test
+  public void testPrepareBatchValidationError(TestContext ctx) {
+    testValidationError(ctx, (conn, cont) -> {
+      conn.prepare("SELECT * FROM Fortune WHERE id=$1", ctx.asyncAssertSuccess(ps -> {
+        ps.batch(Collections.singletonList(Tuple.of("invalid-id")), ctx.asyncAssertFailure(cont));
+      }));
+    });
+  }
+
+  @Test
+  public void testPreparedQueryValidationError(TestContext ctx) {
+    testValidationError(ctx, (conn, cont) -> {
+      conn.preparedQuery("SELECT * FROM Fortune WHERE id=$1", Tuple.of("invalid-id"), ctx.asyncAssertFailure(cont));
+    });
+  }
+
+  @Test
+  public void testPreparedBatchValidationError(TestContext ctx) {
+    testValidationError(ctx, (conn, cont) -> {
+      conn.preparedBatch("SELECT * FROM Fortune WHERE id=$1", Collections.singletonList(Tuple.of("invalid-id")), ctx.asyncAssertFailure(cont));
+    });
   }
 
   // Need to test partial query close or abortion ?
@@ -241,26 +290,39 @@ public abstract class PreparedStatementTestBase extends PgTestBase {
 
   @Test
   public void testStreamQueryPauseInBatch(TestContext ctx) {
+    testStreamQueryPauseInBatch(ctx, Runnable::run);
+  }
+
+  @Test
+  public void testStreamQueryPauseInBatchFromAnotherThread(TestContext ctx) {
+    testStreamQueryPauseInBatch(ctx, t -> new Thread(t).start());
+  }
+
+  private void testStreamQueryPauseInBatch(TestContext ctx, Executor executor) {
     Async async = ctx.async();
     pgClientFactory.connect(options(), ctx.asyncAssertSuccess(conn -> {
       conn.query("BEGIN", ctx.asyncAssertSuccess(begin -> {
         conn.prepare("SELECT * FROM Fortune", ctx.asyncAssertSuccess(ps -> {
           PgStream<Row> stream = ps.createStream(4, Tuple.tuple());
-          List<Tuple> rows = new ArrayList<>();
+          List<Tuple> rows = Collections.synchronizedList(new ArrayList<>());
           AtomicInteger ended = new AtomicInteger();
-          stream.endHandler(v -> {
-            ctx.assertEquals(0, ended.getAndIncrement());
-            ctx.assertEquals(12, rows.size());
-            async.complete();
-          });
-          stream.handler(tuple -> {
-            rows.add(tuple);
-            if (rows.size() == 2) {
-              stream.pause();
-              vertx.setTimer(100, v -> {
-                stream.resume();
-              });
-            }
+          executor.execute(() -> {
+            stream.endHandler(v -> {
+              ctx.assertEquals(0, ended.getAndIncrement());
+              ctx.assertEquals(12, rows.size());
+              async.complete();
+            });
+            stream.handler(tuple -> {
+              rows.add(tuple);
+              if (rows.size() == 2) {
+                stream.pause();
+                executor.execute(() -> {
+                  vertx.setTimer(100, v -> {
+                    executor.execute(stream::resume);
+                  });
+                });
+              }
+            });
           });
         }));
       }));
@@ -283,7 +345,10 @@ public abstract class PreparedStatementTestBase extends PgTestBase {
       }));
     }));
   }
-/*
+
+
+
+  /*
   @Test
   public void testStreamQueryCancel(TestContext ctx) {
     Async async = ctx.async();

@@ -15,6 +15,7 @@ image:https://travis-ci.org/reactiverse/reactive-pg-client.svg?branch=master["Bu
 - Publish / subscribe using Postgres `LISTEN/NOTIFY`
 - Batch and cursor support
 - Row streaming
+- `java.util.stream.Collector` row set transformation
 - Command pipeling
 - RxJava 1 and RxJava 2
 - Direct memory to object without unnecessary copies
@@ -25,6 +26,8 @@ image:https://travis-ci.org/reactiverse/reactive-pg-client.svg?branch=master["Bu
 
 == Usage
 
+Latest release is https://github.com/reactiverse/reactive-pg-client/blob/master/RELEASES.adoc[0.10.1].
+
 To use the client, add the following dependency to the _dependencies_ section of your build descriptor:
 
 * Maven (in your `pom.xml`):
@@ -34,7 +37,7 @@ To use the client, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.reactiverse</groupId>
   <artifactId>reactive-pg-client</artifactId>
-  <version>0.8.0</version>
+  <version>0.10.1</version>
 </dependency>
 ----
 
@@ -43,7 +46,7 @@ To use the client, add the following dependency to the _dependencies_ section of
 [source,groovy]
 ----
 dependencies {
-  compile 'io.reactiverse:reactive-pg-client:0.8.0'
+  compile 'io.reactiverse:reactive-pg-client:0.10.1'
 }
 ----
 
@@ -56,7 +59,7 @@ PgPoolOptions options = new PgPoolOptions()
   .setPort(5432)
   .setHost("the-host")
   .setDatabase("the-db")
-  .setUsername("user")
+  .setUser("user")
   .setPassword("secret")
   .setMaxSize(5);
 
@@ -155,6 +158,12 @@ The *Reactive Postgres Client* currently supports the following data types
 |`j.l.String[]`
 |&#10004;
 
+|`ENUM`
+|`j.l.String`
+|&#10004;
+|`j.l.String[]`
+|&#10004;
+
 |`NAME`
 |`j.l.String`
 |&#10004;
@@ -203,6 +212,12 @@ The *Reactive Postgres Client* currently supports the following data types
 |`j.t.OffsetDateTime[]`
 |&#10004;
 
+|`INTERVAL`
+|`i.r.p.d.Interval`
+|&#10004;
+|`i.r.p.d.Interval[]`
+|&#10004;
+
 |`BYTEA`
 |`i.v.c.b.Buffer`
 |&#10004;
@@ -225,7 +240,7 @@ The *Reactive Postgres Client* currently supports the following data types
 
 The following types
 
-_SERIAL2_, _SERIAL4_, _SERIAL8_, _MONEY_, _INTERVAL_, _BIT_, _VARBIT_, _MACADDR_, _INET_, _CIDR_, _MACADDR8_,
+_SERIAL2_, _SERIAL4_, _SERIAL8_, _MONEY_, _BIT_, _VARBIT_, _MACADDR_, _INET_, _CIDR_, _MACADDR8_,
 _XML_, _POINT_, _PATH_, _BOX_, _LINE_, _POLYGON_, _LSEG_, _CIRCLE_, _HSTORE_, _OID_,
 _VOID_, _UNKOWN_, _TSQUERY_, _TSVECTOR_
 
@@ -240,6 +255,42 @@ Snapshots are deploy in Sonatype OSS repository: https://oss.sonatype.org/conten
 Apache License - Version 2.0
 
 == Developers
+
+=== Testing
+
+Out of the box, the test suite runs an embedded Postgres by default.
+
+=== Testing with an external database
+
+You can run tests with an external database:
+
+- the script `docker/postgres/resources/create-postgres.sql` creates the test data
+- the `TLSTest` expects the database to be configured with SSL with `docker/postgres/resources/server.key` / `docker/postgres/resources/server.cert``
+
+You need to override the default connection uri for testing:
+
+```
+> mvn test -Dconnection.uri=postgres://$username:$password@$host:$port/$database
+```
+
+NOTE: unix domain sockets are not testable (yet).
+
+=== Testing with Docker
+
+Create and run the following docker image:
+
+```
+> docker build -t test/postgres docker/postgres
+> docker run --rm --name test-postgres -p 5432:5432 test/postgres
+```
+
+Run tests:
+
+```
+> mvn test -Dconnection.uri=postgres://postgres:postgres@localhost/postgres
+```
+
+NOTE: unix domain sockets are not testable (yet).
 
 === Documentation
 

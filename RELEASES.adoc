@@ -1,0 +1,30 @@
+
+== 0.10.1
+
+Fixed issues: https://github.com/reactiverse/reactive-pg-client/milestone/8?closed=1
+
+=== Bug fixes
+
+- Connection client encoding parsing should be case insensitive for supporting Greenplum
+- Use quoted identifiers in LISTEN / UNLISTEN
+
+== 0.10.0
+
+Fixed issues: https://github.com/reactiverse/reactive-pg-client/milestone/7?closed=1[Issues]
+
+=== Features
+
+- simplified transaction API
+- interval data type support
+- enum data type support
+- cached prepared statement option
+- RxJava documentation enhancements
+- upgrade to Vert.x 3.5.3
+- `Row` provides access to column names
+
+=== Breaking changes
+
+- data types in `io.reactiverse.pgclient` have been moved to `io.reactiverse.pgclient.data`
+- `PgResult#updatedCount()` has been renamed to `PgResult#rowCount()`
+
+

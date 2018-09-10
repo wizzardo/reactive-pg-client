@@ -39,6 +39,8 @@ public class ConnectionPool {
   private final Set<PooledConnection> all = new HashSet<>();
   private final ArrayDeque<PooledConnection> available = new ArrayDeque<>();
   private int size;
+  private boolean checkInProgress;
+  private boolean closed;
 
   public ConnectionPool(Consumer<Handler<AsyncResult<Connection>>> connector, int maxSize) {
     this.maxSize = maxSize;
@@ -50,17 +52,31 @@ public class ConnectionPool {
   }
 
   public void acquire(Handler<AsyncResult<Connection>> holder) {
+    if (closed) {
+      throw new IllegalStateException("Connection pool closed");
+    }
     waiters.add(Future.<Connection>future().setHandler(holder));
     check();
   }
 
   public void close() {
+    if (closed) {
+      throw new IllegalStateException("Connection pool already closed");
+    }
+    closed = true;
     for (PooledConnection pooled : new ArrayList<>(all)) {
       pooled.close();
     }
+    Future<Connection> failure = Future.failedFuture("Connection pool close");
+    for (Future<Connection> pending : waiters) {
+      try {
+        pending.handle(failure);
+      } catch (Exception ignore) {
+      }
+    }
   }
 
-  class PooledConnection implements Connection, Connection.Holder  {
+  private class PooledConnection implements Connection, Connection.Holder  {
 
     private final Connection conn;
     private Holder holder;
@@ -87,7 +103,7 @@ public class ConnectionPool {
     /**
      * Close the underlying connection
      */
-    void close() {
+    private void close() {
       conn.close(this);
     }
 
@@ -144,34 +160,48 @@ public class ConnectionPool {
   }
 
   private void release(PooledConnection proxy) {
-    available.add(proxy);
-    check();
+    if (all.contains(proxy)) {
+      available.add(proxy);
+      check();
+    }
   }
 
   private void check() {
-    if (waiters.size() > 0) {
-      if (available.size() > 0) {
-        PooledConnection proxy = available.poll();
-        Future<Connection> waiter = waiters.poll();
-        waiter.complete(proxy);
-      } else {
-        if (size < maxSize) {
-          size++;
-          connector.accept(ar -> {
-            if (ar.succeeded()) {
-              Connection conn = ar.result();
-              PooledConnection proxy = new PooledConnection(conn);
-              all.add(proxy);
-              conn.init(proxy);
-              release(proxy);
+    if (closed) {
+      return;
+    }
+    if (!checkInProgress) {
+      checkInProgress = true;
+      try {
+        while (waiters.size() > 0) {
+          if (available.size() > 0) {
+            PooledConnection proxy = available.poll();
+            Future<Connection> waiter = waiters.poll();
+            waiter.complete(proxy);
+          } else {
+            if (size < maxSize) {
+              size++;
+              connector.accept(ar -> {
+                if (ar.succeeded()) {
+                  Connection conn = ar.result();
+                  PooledConnection proxy = new PooledConnection(conn);
+                  all.add(proxy);
+                  conn.init(proxy);
+                  release(proxy);
+                } else {
+                  Future<Connection> waiter;
+                  while ((waiter = waiters.poll()) != null) {
+                    waiter.fail(ar.cause());
+                  }
+                }
+              });
             } else {
-              Future<Connection> waiter;
-              while ((waiter = waiters.poll()) != null) {
-                waiter.fail(ar.cause());
-              }
+              break;
             }
-          });
+          }
         }
+      } finally {
+        checkInProgress = false;
       }
     }
   }

@@ -56,8 +56,7 @@ public class VertxPgConnection extends PgClientBase<VertxPgConnection> implement
 
   @Override
   protected void schedule(CommandBase<?> cmd) {
-    Context current = Vertx.currentContext();
-    if (current == context) {
+    if (context == Vertx.currentContext()) {
       if (tx != null) {
         tx.schedule(cmd);
       } else {
@@ -107,11 +106,18 @@ public class VertxPgConnection extends PgClientBase<VertxPgConnection> implement
 
   @Override
   public PgTransaction begin() {
+    return begin(false);
+  }
+
+  PgTransaction begin(boolean closeOnEnd) {
     if (tx != null) {
       throw new IllegalStateException();
     }
     tx = new Transaction(h -> context.runOnContext(h::handle), conn, v -> {
       tx = null;
+      if (closeOnEnd) {
+        close();
+      }
     });
     return tx;
   }
@@ -125,11 +131,15 @@ public class VertxPgConnection extends PgClientBase<VertxPgConnection> implement
 
   @Override
   public void close() {
-    if (tx != null) {
-      tx.rollback(ar -> conn.close(this));
-      tx = null;
+    if (context == Vertx.currentContext()) {
+      if (tx != null) {
+        tx.rollback(ar -> conn.close(this));
+        tx = null;
+      } else {
+        conn.close(this);
+      }
     } else {
-      conn.close(this);
+      context.runOnContext(v -> close());
     }
   }
 
@@ -137,7 +147,7 @@ public class VertxPgConnection extends PgClientBase<VertxPgConnection> implement
   public PgConnection prepare(String sql, Handler<AsyncResult<PgPreparedQuery>> handler) {
     schedule(new PrepareStatementCommand(sql, ar -> {
       if (ar.succeeded()) {
-        handler.handle(Future.succeededFuture(new PgPreparedQueryImpl(conn, ar.result())));
+        handler.handle(Future.succeededFuture(new PgPreparedQueryImpl(conn, context, ar.result())));
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }

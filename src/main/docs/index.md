@@ -243,6 +243,8 @@ will stop iterating.
 
 ## Using transactions
 
+### Transactions with connections
+
 You can execute transaction using SQL `BEGIN`/`COMMIT`/`ROLLBACK`, if you do so you must use
 a {@link io.reactiverse.pgclient.PgConnection} and manage it yourself.
 
@@ -260,6 +262,16 @@ is called:
 {@link examples.Examples#transaction02(io.reactiverse.pgclient.PgPool)}
 ```
 
+### Simplified transaction API
+
+When you use a pool, you can start a transaction directly on the pool.
+
+It borrows a connection from the pool, begins the transaction and releases the connection to the pool when the transaction ends.
+
+```$lang
+{@link examples.Examples#transaction03(io.reactiverse.pgclient.PgPool)}
+```
+
 ## Postgres type mapping
 
 Currently the client supports the following Postgres types
@@ -273,24 +285,26 @@ Currently the client supports the following Postgres types
 * CHAR (`java.lang.String`)
 * VARCHAR (`java.lang.String`)
 * TEXT (`java.lang.String`)
+* ENUM (`java.lang.String`)
 * NAME (`java.lang.String`)
-* NUMERIC (`io.reactiverse.pgclient.Numeric`)
+* NUMERIC (`io.reactiverse.pgclient.data.Numeric`)
 * UUID (`java.util.UUID`)
 * DATE (`java.time.LocalDate`)
 * TIME (`java.time.LocalTime`)
 * TIMETZ (`java.time.OffsetTime`)
 * TIMESTAMP (`java.time.LocalDateTime`)
 * TIMESTAMPTZ (`java.time.OffsetDateTime`)
+* INTERVAL (`io.reactiverse.pgclient.data.Interval`)
 * BYTEA (`io.vertx.core.buffer.Buffer`)
-* JSON (`io.reactiverse.pgclient.Json`)
-* JSONB (`io.reactiverse.pgclient.Json`)
+* JSON (`io.reactiverse.pgclient.data.Json`)
+* JSONB (`io.reactiverse.pgclient.data.Json`)
 * POINT (`io.reactiverse.pgclient.data.Point`)
 
 Arrays of these types are supported.
 
 ### Handling JSON
 
-The {@link io.reactiverse.pgclient.Json} Java type is used to represent the Postgres `JSON` and `JSONB` type.
+The {@link io.reactiverse.pgclient.data.Json} Java type is used to represent the Postgres `JSON` and `JSONB` type.
 
 The main reason of this type is handling `null` JSON values.
 
@@ -300,7 +314,7 @@ The main reason of this type is handling `null` JSON values.
 
 ### Handling NUMERIC
 
-The {@link io.reactiverse.pgclient.Numeric} Java type is used to represent the Postgres `NUMERIC` type.
+The {@link io.reactiverse.pgclient.data.Numeric} Java type is used to represent the Postgres `NUMERIC` type.
 
 ```$lang
 {@link examples.Examples#numericExample}
@@ -332,6 +346,42 @@ create easily create a string directly from the row set:
 {@link examples.Examples#collector02Example}
 ```
 
+## RxJava support
+
+The rxified API supports RxJava 1 and RxJava 2, the following examples use RxJava 2.
+
+Most asynchronous constructs are available as methods prefixed by `rx`:
+
+```$lang
+{@link examples.RxExamples#simpleQuery01Example}
+```
+
+
+### Streaming
+
+RxJava 2 supports `Observable` and `Flowable` types, these are exposed using
+the {@link io.reactiverse.reactivex.pgclient.PgStream} that you can get
+from a {@link io.reactiverse.reactivex.pgclient.PgPreparedQuery}:
+
+```$lang
+{@link examples.RxExamples#streamingQuery01Example}
+```
+
+The same example using `Flowable`:
+
+```$lang
+{@link examples.RxExamples#streamingQuery02Example}
+```
+
+### Transaction
+
+The simplified transaction API allows to easily write transactional
+asynchronous flows:
+
+```$lang
+{@link examples.RxExamples#transaction01Example}
+```
+
 ## Pub/sub
 
 Postgres supports pub/sub communication channels.
@@ -350,15 +400,22 @@ provides per channel subscription:
 {@link examples.Examples#pubsub02(io.vertx.core.Vertx)}
 ```
 
+The channel name that is given to the channel method will be the exact name of the channel as held by Postgres for sending
+notifications.  Note this is different than the representation of the channel name in SQL, and
+internally {@link io.reactiverse.pgclient.pubsub.PgSubscriber} will prepare the submitted channel name as a quoted identifier:
+
+```$lang
+{@link examples.Examples#pubsub03(io.vertx.core.Vertx)}
+```
 You can provide a reconnect policy as a function that takes the number of `retries` as argument and returns an `amountOfTime`
 value:
 
 * when `amountOfTime < 0`: the subscriber is closed and there is no retry
-* when `amountOfTime ## 0`: the subscriber retries to connect immediately
+* when `amountOfTime = 0`: the subscriber retries to connect immediately
 * when `amountOfTime > 0`: the subscriber retries after `amountOfTime` milliseconds
 
 ```$lang
-{@link examples.Examples#pubsub03(io.vertx.core.Vertx)}
+{@link examples.Examples#pubsub04(io.vertx.core.Vertx)}
 ```
 
 The default policy is to not reconnect.

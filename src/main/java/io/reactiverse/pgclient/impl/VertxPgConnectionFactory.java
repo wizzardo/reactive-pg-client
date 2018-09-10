@@ -22,6 +22,7 @@ import io.vertx.core.*;
 import io.vertx.core.impl.NetSocketInternal;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 
 /**
@@ -95,7 +96,7 @@ public class VertxPgConnectionFactory {
     } else {
       socketAddress = SocketAddress.domainSocketAddress(host + "/.s.PGSQL." + port);
     }
-    client.connect(socketAddress, null, ar -> {
+    Future<NetSocket> fut = Future.<NetSocket>future().setHandler(ar -> {
       if (ar.succeeded()) {
         NetSocketInternal socket = (NetSocketInternal) ar.result();
         VertxSocketConnection conn = new VertxSocketConnection(
@@ -109,6 +110,11 @@ public class VertxPgConnectionFactory {
         completionHandler.handle(CommandResponse.failure(ar.cause()));
       }
     });
+    try {
+      client.connect(socketAddress, null, fut);
+    } catch (Exception e) {
+      // Client is closed
+      fut.fail(e);
+    }
   }
-
 }

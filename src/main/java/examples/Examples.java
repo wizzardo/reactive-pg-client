@@ -19,6 +19,8 @@ package examples;
 
 import io.reactiverse.pgclient.*;
 import io.reactiverse.pgclient.impl.VertxPgClientFactory;
+import io.reactiverse.pgclient.data.Json;
+import io.reactiverse.pgclient.data.Numeric;
 import io.reactiverse.pgclient.pubsub.PgSubscriber;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -262,7 +264,7 @@ public class Examples {
     client.preparedQuery("INSERT INTO users (first_name, last_name) VALUES ($1, $2)", Tuple.of("Julien", "Viet"),  ar -> {
       if (ar.succeeded()) {
         PgRowSet rows = ar.result();
-        System.out.println(rows.updatedCount());
+        System.out.println(rows.rowCount());
       } else {
         System.out.println("Failure: " + ar.cause().getMessage());
       }
@@ -461,6 +463,9 @@ public class Examples {
           } else {
             System.out.println("Transaction failed " + ar.cause().getMessage());
           }
+
+          // Return the connection to the pool
+          conn.close();
         });
       }
     });
@@ -482,6 +487,12 @@ public class Examples {
 
         conn.query("INSERT INTO Users (first_name,last_name) VALUES ('Julien','Viet')", ar -> {
           // Works fine of course
+          if (ar.succeeded()) {
+
+          } else {
+            tx.rollback();
+            conn.close();
+          }
         });
         conn.query("INSERT INTO Users (first_name,last_name) VALUES ('Julien','Viet')", ar -> {
           // Fails and triggers transaction aborts
@@ -490,6 +501,34 @@ public class Examples {
         // Attempt to commit the transaction
         tx.commit(ar -> {
           // But transaction abortion fails it
+
+          // Return the connection to the pool
+          conn.close();
+        });
+      }
+    });
+  }
+
+  public void transaction03(PgPool pool) {
+
+    // Acquire a transaction and begin the transaction
+    pool.begin(res -> {
+      if (res.succeeded()) {
+
+        // Get the transaction
+        PgTransaction tx = res.result();
+
+        // Various statements
+        tx.query("INSERT INTO Users (first_name,last_name) VALUES ('Julien','Viet')", ar -> {});
+        tx.query("INSERT INTO Users (first_name,last_name) VALUES ('Emad','Alblueshi')", ar -> {});
+
+        // Commit the transaction and return the connection to the pool
+        tx.commit(ar -> {
+          if (ar.succeeded()) {
+            System.out.println("Transaction succeeded");
+          } else {
+            System.out.println("Transaction failed " + ar.cause().getMessage());
+          }
         });
       }
     });
@@ -535,6 +574,52 @@ public class Examples {
   public void pubsub03(Vertx vertx) {
 
     PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new VertxPgConnectOptions()
+      .setPort(5432)
+      .setHost("the-host")
+      .setDatabase("the-db")
+      .setUser("user")
+      .setPassword("secret")
+    );
+
+    subscriber.connect(ar -> {
+        if (ar.succeeded()) {
+          // Complex channel name - name in PostgreSQL requires a quoted ID
+          subscriber.channel("Complex.Channel.Name").handler(payload -> {
+            System.out.println("Received " + payload);
+          });
+          subscriber.channel("Complex.Channel.Name").subscribeHandler(subscribed -> {
+        	  subscriber.actualConnection().query(
+        			  "NOTIFY \"Complex.Channel.Name\", 'msg'", notified -> {
+        		  System.out.println("Notified \"Complex.Channel.Name\"");
+        	  });
+          });
+
+          // PostgreSQL simple ID's are forced lower-case
+          subscriber.channel("simple_channel").handler(payload -> {
+              System.out.println("Received " + payload);
+          });
+          subscriber.channel("simple_channel").subscribeHandler(subscribed -> {
+        	  // The following simple channel identifier is forced to lower case
+              subscriber.actualConnection().query(
+            		"NOTIFY Simple_CHANNEL, 'msg'", notified -> {
+          		  System.out.println("Notified simple_channel");
+          	  });
+          });
+
+          // The following channel name is longer than the current
+          // (NAMEDATALEN = 64) - 1 == 63 character limit and will be truncated
+          subscriber.channel(
+        		  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbb"
+        		  ).handler(payload -> {
+              System.out.println("Received " + payload);
+          });
+        }
+      });
+  }
+
+  public void pubsub04(Vertx vertx) {
+
+    PgSubscriber subscriber = PgSubscriber.subscriber(vertx, new PgConnectOptions()
       .setPort(5432)
       .setHost("the-host")
       .setDatabase("the-db")

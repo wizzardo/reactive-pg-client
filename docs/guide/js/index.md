@@ -31,7 +31,7 @@ To use the Reactive Postgres Client add the following dependency to the _depende
 <dependency>
  <groupId>io.reactiverse</groupId>
  <artifactId>reactive-pg-client</artifactId>
- <version>0.8.0</version>
+ <version>0.10.1</version>
 </dependency>
 ```
 
@@ -39,7 +39,7 @@ To use the Reactive Postgres Client add the following dependency to the _depende
 
 ```groovy
 dependencies {
- compile 'io.reactiverse:reactive-pg-client:0.8.0'
+ compile 'io.reactiverse:reactive-pg-client:0.10.1'
 }
 ```
 
@@ -67,7 +67,7 @@ var client = PgClient.pool(options);
 client.query("SELECT * FROM users WHERE id='julien'", function (ar, ar_err) {
   if (ar_err == null) {
     var result = ar;
-    console.log("Got " + result.size() + " results ");
+    console.log("Got " + result.size() + " rows ");
   } else {
     console.log("Failure: " + ar_err.getMessage());
   }
@@ -279,7 +279,7 @@ Here is how to run simple queries:
 client.query("SELECT * FROM users WHERE id='julien'", function (ar, ar_err) {
   if (ar_err == null) {
     var result = ar;
-    console.log("Got " + result.size() + " results ");
+    console.log("Got " + result.size() + " rows ");
   } else {
     console.log("Failure: " + ar_err.getMessage());
   }
@@ -295,8 +295,8 @@ The SQL string can refer to parameters by position, using `$1`, `$2`, etc…​
 var Tuple = require("reactive-pg-client-js/tuple");
 client.preparedQuery("SELECT * FROM users WHERE id=$1", Tuple.of("julien"), function (ar, ar_err) {
   if (ar_err == null) {
-    var result = ar;
-    console.log("Got " + result.size() + " results ");
+    var rows = ar;
+    console.log("Got " + rows.size() + " rows ");
   } else {
     console.log("Failure: " + ar_err.getMessage());
   }
@@ -304,13 +304,13 @@ client.preparedQuery("SELECT * FROM users WHERE id=$1", Tuple.of("julien"), func
 
 ```
 
-Query methods provides an asynchronous [`PgResult`](../../jsdoc/module-reactive-pg-client-js_pg_result-PgResult.html) instance that works for _SELECT_ queries
+Query methods provides an asynchronous [`PgRowSet`](../../jsdoc/module-reactive-pg-client-js_pg_row_set-PgRowSet.html) instance that works for _SELECT_ queries
 
 ```js
 client.preparedQuery("SELECT first_name, last_name FROM users", function (ar, ar_err) {
   if (ar_err == null) {
-    var result = ar;
-    Array.prototype.forEach.call(result, function(row) {
+    var rows = ar;
+    Array.prototype.forEach.call(rows, function(row) {
       console.log("User " + row.getString(0) + " " + row.getString(1));
     });
   } else {
@@ -326,8 +326,8 @@ or _UPDATE_/_INSERT_ queries:
 var Tuple = require("reactive-pg-client-js/tuple");
 client.preparedQuery("INSERT INTO users (first_name, last_name) VALUES ($1, $2)", Tuple.of("Julien", "Viet"), function (ar, ar_err) {
   if (ar_err == null) {
-    var result = ar;
-    console.log(result.updatedCount());
+    var rows = ar;
+    console.log(rows.rowCount());
   } else {
     console.log("Failure: " + ar_err.getMessage());
   }
@@ -376,8 +376,8 @@ batch.push(Tuple.of("emad", "Emad Alblueshi"));
 client.preparedBatch("INSERT INTO USERS (id, name) VALUES ($1, $2)", batch, function (res, res_err) {
   if (res_err == null) {
 
-    // Process results
-    var results = res;
+    // Process rows
+    var rows = res;
   } else {
     console.log("Batch failed " + res_err);
   }
@@ -416,7 +416,7 @@ connection.prepare("SELECT * FROM users WHERE first_name LIKE $1", function (ar1
     pq.execute(Tuple.of("julien"), function (ar2, ar2_err) {
       if (ar2_err == null) {
         // All rows
-        var result = ar2;
+        var rows = ar2;
       }
     });
   }
@@ -427,7 +427,7 @@ connection.prepare("SELECT * FROM users WHERE first_name LIKE $1", function (ar1
 NOTE: prepared query caching depends on the [`cachePreparedStatements`](../dataobjects.html#PgConnectOptions#setCachePreparedStatements) and
 does not depend on whether you are creating prepared queries or use [`direct prepared queries`](../../jsdoc/module-reactive-pg-client-js_pg_client-PgClient.html#preparedQuery)
 
-By default prepared query executions fetch all results, you can use a [`PgCursor`](../../jsdoc/module-reactive-pg-client-js_pg_cursor-PgCursor.html) to control the amount of rows you want to read:
+By default prepared query executions fetch all rows, you can use a [`PgCursor`](../../jsdoc/module-reactive-pg-client-js_pg_cursor-PgCursor.html) to control the amount of rows you want to read:
 
 ```js
 var Tuple = require("reactive-pg-client-js/tuple");
@@ -441,17 +441,17 @@ connection.prepare("SELECT * FROM users WHERE first_name LIKE $1", function (ar1
     // Read 50 rows
     cursor.read(50, function (ar2, ar2_err) {
       if (ar2_err == null) {
-        var result = ar2;
+        var rows = ar2;
 
         // Check for more ?
         if (cursor.hasMore()) {
 
           // Read the next 50
           cursor.read(50, function (ar3, ar3_err) {
-            // More results, and so on...
+            // More rows, and so on...
           });
         } else {
-          // No more results
+          // No more rows
         }
       }
     });
@@ -529,8 +529,8 @@ connection.prepare("INSERT INTO USERS (id, name) VALUES ($1, $2)", function (ar1
     prepared.batch(batch, function (res, res_err) {
       if (res_err == null) {
 
-        // Process results
-        var results = res;
+        // Process rows
+        var rows = res;
       } else {
         console.log("Batch failed " + res_err);
       }
@@ -541,6 +541,8 @@ connection.prepare("INSERT INTO USERS (id, name) VALUES ($1, $2)", function (ar1
 ```
 
 ## Using transactions
+
+### Transactions with connections
 
 You can execute transaction using SQL `BEGIN`/`COMMIT`/`ROLLBACK`, if you do so you must use
 a [`PgConnection`](../../jsdoc/module-reactive-pg-client-js_pg_connection-PgConnection.html) and manage it yourself.
@@ -569,6 +571,12 @@ pool.getConnection(function (res, res_err) {
 
     conn.query("INSERT INTO Users (first_name,last_name) VALUES ('Julien','Viet')", function (ar, ar_err) {
       // Works fine of course
+      if (ar_err == null) {
+
+      } else {
+        tx.rollback();
+        conn.close();
+      }
     });
     conn.query("INSERT INTO Users (first_name,last_name) VALUES ('Julien','Viet')", function (ar, ar_err) {
       // Fails and triggers transaction aborts
@@ -577,10 +585,23 @@ pool.getConnection(function (res, res_err) {
     // Attempt to commit the transaction
     tx.commit(function (ar, ar_err) {
       // But transaction abortion fails it
+
+      // Return the connection to the pool
+      conn.close();
     });
   }
 });
 
+```
+
+### Simplified transaction API
+
+When you use a pool, you can start a transaction directly on the pool.
+
+It borrows a connection from the pool, begins the transaction and releases the connection to the pool when the transaction ends.
+
+```js
+Code not translatable
 ```
 
 ## Postgres type mapping
@@ -596,17 +617,20 @@ Currently the client supports the following Postgres types
 * CHAR (`java.lang.String`)
 * VARCHAR (`java.lang.String`)
 * TEXT (`java.lang.String`)
+* ENUM (`java.lang.String`)
 * NAME (`java.lang.String`)
-* NUMERIC (`io.reactiverse.pgclient.Numeric`)
+* NUMERIC (`io.reactiverse.pgclient.data.Numeric`)
 * UUID (`java.util.UUID`)
 * DATE (`java.time.LocalDate`)
 * TIME (`java.time.LocalTime`)
 * TIMETZ (`java.time.OffsetTime`)
 * TIMESTAMP (`java.time.LocalDateTime`)
 * TIMESTAMPTZ (`java.time.OffsetDateTime`)
+* INTERVAL (`io.reactiverse.pgclient.data.Interval`)
 * BYTEA (`io.vertx.core.buffer.Buffer`)
-* JSON (`io.reactiverse.pgclient.Json`)
-* JSONB (`io.reactiverse.pgclient.Json`)
+* JSON (`io.reactiverse.pgclient.data.Json`)
+* JSONB (`io.reactiverse.pgclient.data.Json`)
+* POINT (`io.reactiverse.pgclient.data.Point`)
 
 Arrays of these types are supported.
 
@@ -653,6 +677,60 @@ if (numeric.isNaN()) {
 ## Handling arrays
 
 Arrays are available on [`Tuple`](../../jsdoc/module-reactive-pg-client-js_tuple-Tuple.html) and [`Row`](../../jsdoc/module-reactive-pg-client-js_row-Row.html):
+
+```js
+Code not translatable
+```
+
+## Collector queries
+
+You can use Java collectors with the query API:
+
+```js
+Code not translatable
+```
+
+The collector processing must not keep a reference on the [`Row`](../../jsdoc/module-reactive-pg-client-js_row-Row.html) as
+there is a single row used for processing the entire set.
+
+The Java `Collectors` provides many interesting predefined collectors, for example you can
+create easily create a string directly from the row set:
+
+```js
+Code not translatable
+```
+
+## RxJava support
+
+The rxified API supports RxJava 1 and RxJava 2, the following examples use RxJava 2.
+
+Most asynchronous constructs are available as methods prefixed by `rx`:
+
+```js
+Code not translatable
+```
+
+
+### Streaming
+
+RxJava 2 supports `Observable` and `Flowable` types, these are exposed using
+the `PgStream` that you can get
+from a `PgPreparedQuery`:
+
+```js
+Code not translatable
+```
+
+The same example using `Flowable`:
+
+```js
+Code not translatable
+```
+
+### Transaction
+
+The simplified transaction API allows to easily write transactional
+asynchronous flows:
 
 ```js
 Code not translatable
@@ -708,11 +786,58 @@ subscriber.connect(function (ar, ar_err) {
 
 ```
 
+The channel name that is given to the channel method will be the exact name of the channel as held by Postgres for sending
+notifications.  Note this is different than the representation of the channel name in SQL, and
+internally [`PgSubscriber`](../../jsdoc/module-reactive-pg-client-js_pg_subscriber-PgSubscriber.html) will prepare the submitted channel name as a quoted identifier:
+
+```js
+var PgSubscriber = require("reactive-pg-client-js/pg_subscriber");
+
+var subscriber = PgSubscriber.subscriber(vertx, {
+  "port" : 5432,
+  "host" : "the-host",
+  "database" : "the-db",
+  "user" : "user",
+  "password" : "secret"
+});
+
+subscriber.connect(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Complex channel name - name in PostgreSQL requires a quoted ID
+    subscriber.channel("Complex.Channel.Name").handler(function (payload) {
+      console.log("Received " + payload);
+    });
+    subscriber.channel("Complex.Channel.Name").subscribeHandler(function (subscribed) {
+      subscriber.actualConnection().query("NOTIFY \"Complex.Channel.Name\", 'msg'", function (notified, notified_err) {
+        console.log("Notified \"Complex.Channel.Name\"");
+      });
+    });
+
+    // PostgreSQL simple ID's are forced lower-case 
+    subscriber.channel("simple_channel").handler(function (payload) {
+      console.log("Received " + payload);
+    });
+    subscriber.channel("simple_channel").subscribeHandler(function (subscribed) {
+      // The following simple channel identifier is forced to lower case
+      subscriber.actualConnection().query("NOTIFY Simple_CHANNEL, 'msg'", function (notified, notified_err) {
+        console.log("Notified simple_channel");
+      });
+    });
+
+    // The following channel name is longer than the current
+    // (NAMEDATALEN = 64) - 1 == 63 character limit and will be truncated
+    subscriber.channel("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbb").handler(function (payload) {
+      console.log("Received " + payload);
+    });
+  }
+});
+
+```
 You can provide a reconnect policy as a function that takes the number of `retries` as argument and returns an `amountOfTime`
 value:
 
 * when `amountOfTime < 0`: the subscriber is closed and there is no retry
-* when `amountOfTime ## 0`: the subscriber retries to connect immediately
+* when `amountOfTime = 0`: the subscriber retries to connect immediately
 * when `amountOfTime > 0`: the subscriber retries after `amountOfTime` milliseconds
 
 ```js
@@ -742,7 +867,7 @@ The default policy is to not reconnect.
 ## Using SSL/TLS
 
 To configure the client to use SSL connection, you can configure the [`PgConnectOptions`](../dataobjects.html#PgConnectOptions)
-like a Vert.x `NetClient`}.
+like a Vert.x `NetClient`.
 
 ```js
 var PgClient = require("reactive-pg-client-js/pg_client");

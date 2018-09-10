@@ -20,6 +20,7 @@ package io.reactiverse.pgclient.impl;
 import io.netty.channel.ChannelHandlerContext;
 import io.reactiverse.pgclient.impl.codec.decoder.MessageDecoder;
 import io.reactiverse.pgclient.impl.codec.decoder.InitiateSslHandler;
+import io.reactiverse.pgclient.impl.codec.decoder.NoticeResponse;
 import io.reactiverse.pgclient.impl.codec.encoder.MessageEncoder;
 import io.reactiverse.pgclient.impl.codec.decoder.NotificationResponse;
 import io.netty.channel.ChannelPipeline;
@@ -30,6 +31,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.impl.NetSocketInternal;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class VertxSocketConnection implements Connection {
+
+  private static final Logger logger = LoggerFactory.getLogger(SocketConnection.class);
 
   enum Status {
 
@@ -200,6 +205,8 @@ public class VertxSocketConnection implements Connection {
       cmd.handler.handle(msg);
     } else if (msg instanceof NotificationResponse) {
       handleNotification((NotificationResponse) msg);
+    } else if (msg instanceof NoticeResponse) {
+      handleNotice((NoticeResponse) msg);
     }
   }
 
@@ -207,6 +214,27 @@ public class VertxSocketConnection implements Connection {
     if (holder != null) {
       holder.handleNotification(response.getProcessId(), response.getChannel(), response.getPayload());
     }
+  }
+
+  private void handleNotice(NoticeResponse notice) {
+    logger.warn("Backend notice: " +
+      "severity='" + notice.getSeverity() + "'" +
+      ", code='" + notice.getCode() + "'" +
+      ", message='" + notice.getMessage() + "'" +
+      ", detail='" + notice.getDetail() + "'" +
+      ", hint='" + notice.getHint() + "'" +
+      ", position='" + notice.getPosition() + "'" +
+      ", internalPosition='" + notice.getInternalPosition() + "'" +
+      ", internalQuery='" + notice.getInternalQuery() + "'" +
+      ", where='" + notice.getWhere() + "'" +
+      ", file='" + notice.getFile() + "'" +
+      ", line='" + notice.getLine() + "'" +
+      ", routine='" + notice.getRoutine() + "'" +
+      ", schema='" + notice.getSchema() + "'" +
+      ", table='" + notice.getTable() + "'" +
+      ", column='" + notice.getColumn() + "'" +
+      ", dataType='" + notice.getDataType() + "'" +
+      ", constraint='" + notice.getConstraint() + "'");
   }
 
   private void handleClosed(Void v) {

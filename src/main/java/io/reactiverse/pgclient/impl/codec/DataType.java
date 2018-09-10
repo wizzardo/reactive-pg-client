@@ -18,8 +18,9 @@ package io.reactiverse.pgclient.impl.codec;
 
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
-import io.reactiverse.pgclient.Json;
-import io.reactiverse.pgclient.Numeric;
+import io.reactiverse.pgclient.data.Json;
+import io.reactiverse.pgclient.data.Numeric;
+import io.reactiverse.pgclient.data.Interval;
 import io.reactiverse.pgclient.data.Point;
 import io.reactiverse.pgclient.shared.Buffer;
 
@@ -74,8 +75,8 @@ public enum DataType {
   TIMESTAMP_ARRAY(1115, true, LocalDateTime[].class),
   TIMESTAMPTZ(1184, true, OffsetDateTime.class),
   TIMESTAMPTZ_ARRAY(1185, true, OffsetDateTime[].class),
-  INTERVAL(1186, true, Object.class),
-  INTERVAL_ARRAY(1187, true, Object[].class),
+  INTERVAL(1186, true, Interval.class),
+  INTERVAL_ARRAY(1187, true, Interval[].class),
   BYTEA(17, true, Buffer.class),
   BYTEA_ARRAY(1001, true, Buffer[].class),
   MACADDR(829, true, Object.class),
@@ -87,7 +88,7 @@ public enum DataType {
   JSON(114, true, Json.class),
   JSON_ARRAY(199, true, Json[].class),
   JSONB(3802, true, Json.class),
-  JSONB_ARRAY(3807, true, Json.class),
+  JSONB_ARRAY(3807, true, Json[].class),
   XML(142, true, Object.class),
   XML_ARRAY(143, true, Object[].class),
   POINT(600, true, Point.class),
@@ -97,6 +98,8 @@ public enum DataType {
   OID(26, true, Object.class),
   OID_ARRAY(1028, true, Object[].class),
   VOID(2278, true, Object.class),
+  ENUM(16385, true, String.class),
+  ENUM_ARRAY(16384, true, String[].class),
   UNKNOWN(705, true, Object.class);
 
   public final int id;

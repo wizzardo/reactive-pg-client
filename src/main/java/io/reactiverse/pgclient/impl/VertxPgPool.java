@@ -66,17 +66,27 @@ public class VertxPgPool extends PgClientBase<VertxPgPool> implements PgPool {
   }
 
   @Override
+  public void begin(Handler<AsyncResult<PgTransaction>> handler) {
+    getConnection(ar -> {
+      if (ar.succeeded()) {
+        PgConnectionImpl conn = (PgConnectionImpl) ar.result();
+        PgTransaction tx = conn.begin(true);
+        handler.handle(Future.succeededFuture(tx));
+      } else {
+        handler.handle(Future.failedFuture(ar.cause()));
+      }
+    });
+  }
+
+  @Override
   protected void schedule(CommandBase<?> cmd) {
     Context current = Vertx.currentContext();
     if (current == context) {
       pool.acquire(new CommandWaiter() {
         @Override
         protected void onSuccess(Connection conn) {
-          // Work around stack over flow
-          context.runOnContext(v -> {
-            conn.schedule(cmd);
-            conn.close(this);
-          });
+          conn.schedule(cmd);
+          conn.close(this);
         }
         @Override
         protected void onFailure(Throwable cause) {
@@ -150,10 +160,15 @@ public class VertxPgPool extends PgClientBase<VertxPgPool> implements PgPool {
 
   @Override
   public void close() {
-    pool.close();
-    factory.close();
-    if (closeVertx) {
-      context.owner().close();
+    Context current = Vertx.currentContext();
+    if (current == context) {
+      pool.close();
+      factory.close();
+      if (closeVertx) {
+        context.owner().close();
+      }
+    } else {
+      context.runOnContext(v -> close());
     }
   }
 }
